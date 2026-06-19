@@ -198,6 +198,14 @@ h1{
   margin-left: 8px;
 }
 
+#recipe-total-count {
+  text-align: center;
+  margin-top: 24px;
+  margin-bottom: 40px;
+  font-size: 15px;
+  opacity: 0.75;
+}
+
   /* Inputs */
   input[type="text"], textarea{ width:100%; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit; box-sizing:border-box; }
   textarea{ min-height:80px; resize:vertical; }
@@ -786,6 +794,8 @@ if (!footer) {
   root.appendChild(footer);
 }
 footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
+
+}
 
 /* Editor helpers */
 function addIngRow(data){
