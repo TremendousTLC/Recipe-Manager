@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Capture Recipe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #fafafa;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1, h2, h3 { margin-bottom: 10px; }
+    #preview {
+      max-width: 100%;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      padding: 5px;
+      display: none;
+    }
+    #output, #jsonOutput {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .btn {
+      padding: 8px 14px;
+      background: #ff6f61;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-right: 5px;
+    }
+    .btn.secondary { background: #666; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 10px;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+    }
+    table input {
+      width: 100%;
+      padding: 4px;
+      box-sizing: border-box;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    textarea { min-height: 80px; }
+
+    /* Debug panel */
+    #debugToggle {
+      margin-top: 20px;
+      background: #444;
+    }
+    #debugPanel {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      background: #222;
+      color: #eee;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    #debugPanel h3 {
+      margin-top: 10px;
+      color: #ffd27f;
+    }
+    #debugPanel textarea {
+      background: #111;
+      color: #eee;
+      border-color: #555;
+      min-height: 60px;
+      font-size: 12px;
+    }
+    #debugPanel pre {
+      background: #111;
+      color: #eee;
+      padding: 8px;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+
+<body>
+
+  <h1>Capture Recipe → Auto‑Import</h1>
+  <p>Upload a screenshot, edit the extracted recipe, then save it directly into your Recipe Manager.</p>
+
+  <input type="file" id="fileInput" accept="image/*" class="btn">
+  <button id="runOCR" class="btn">Run OCR</button>
+
+  <img id="preview" />
+
+  <h2>Cleaned OCR Text</h2>
+  <textarea id="output"></textarea>
+
+  <h2>Recipe Details (Editable)</h2>
+
+  <label>Name</label>
+  <input id="recipeName" type="text">
+
+  <label style="margin-top:10px;">Category</label>
+  <input id="recipeCategory" type="text" placeholder="e.g., Dinner, Dessert">
+
+  <h3>Ingredients</h3>
+  <table id="ingredientsTable">
+    <thead>
+      <tr>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Name</th>
+        <th>Prep</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button id="addIngredient" class="btn">Add Ingredient</button>
+
+  <h3>Directions</h3>
+  <textarea id="recipeDirections"></textarea>
+
+  <h3>Notes</h3>
+  <textarea id="recipeNotes"></textarea>
+
+  <button id="saveRecipe" class="btn">Save to Recipe Manager</button>
+  <button id="showJson" class="btn secondary">Show JSON</button>
+
+  <div id="jsonOutput" style="display:none;"></div>
+
+  <button id="debugToggle" class="btn secondary">Show Debug</button>
+
+  <div id="debugPanel">
+    <h3>Raw OCR</h3>
+    <textarea id="debugRaw"></textarea>
+
+    <h3>Cleaned OCR (editable)</h3>
+    <textarea id="debugCleaned"></textarea>
+    <button id="debugReparse" class="btn">Re‑Parse Ingredients from Cleaned OCR</button>
+
+    <h3>Ingredient Lines</h3>
+    <pre id="debugLines"></pre>
+
+    <h3>Parsed Ingredients (qty/unit/name/prep)</h3>
+    <pre id="debugParsed"></pre>
+  </div>
+<script>
+/* ========== ELEMENTS ========== */
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const runOCR = document.getElementById('runOCR');
+const output = document.getElementById('output');
+const jsonOutput = document.getElementById('jsonOutput');
+const saveBtn = document.getElementById('saveRecipe');
+const showJsonBtn = document.getElementById('showJson');
+
+const nameInput = document.getElementById('recipeName');
+const categoryInput = document.getElementById('recipeCategory');
+const directionsInput = document.getElementById('recipeDirections');
+const notesInput = document.getElementById('recipeNotes');
+
+const debugToggle = document.getElementById('debugToggle');
+const debugPanel = document.getElementById('debugPanel');
+const debugRaw = document.getElementById('debugRaw');
+const debugCleaned = document.getElementById('debugCleaned');
+const debugLines = document.getElementById('debugLines');
+const debugParsed = document.getElementById('debugParsed');
+const debugReparse = document.getElementById('debugReparse');
+
+let selectedImage = null;
+let lastRawOCR = "";
+
+/* ========== IMAGE LOAD ========== */
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    selectedImage = reader.result;
+    preview.src = reader.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ========== HELPERS ========== */
+
+// Normalize fractions and some known OCR quirks
+function normalizeFractions(text) {
+  text = text.replace(/3\/41/g, "3/4 to 1");
+  text = text.replace(/13%/g, "1 1/2");
+
+  text = text.replace(/½/g, "1/2");
+  text = text.replace(/¼/g, "1/4");
+  text = text.replace(/¾/g, "3/4");
+
+  return text;
+}
+
+// Fix merged numbers/words and some merged words
+function fixSpacing(text) {
+  text = text.replace(/(\d)([A-Za-z])/g, "$1 $2");
+  text = text.replace(/([a-z])([A-Z])/g, "$1 $2");
+  text = text.replace(/oilfor/gi, "Oil for");
+  text = text.replace(/forfrying/gi, "for frying");
+  return text;
+}
+
+// Clean OCR text aggressively
+function cleanOCRText(text) {
+  text = text.replace(/\r/g, "");
+
+  text = normalizeFractions(text);
+  text = fixSpacing(text);
+
+  // NEW: Fix weird OCR bullet + merged "12jalapenos"
+  text = text.replace(/«\s*(\d+)\s*jalapenos?/i, "\n$1 jalapenos");
+
+  text = text.replace(/[=+%]/g, "\n");
+  text = text.replace(/-\n/g, "");
+  text = text.replace(/[•·●»«]/g, "\n");
+  text = text.replace(/\n{2,}/g, "\n");
+  text = text.replace(/\s{2,}/g, " ");
+
+  return text.trim();
+}
+
+
+function smartSplitIngredients(text) {
+
+  // ALWAYS force a newline after "Ingredients"
+  text = text.replace(/ingredients[:\s]*/i, "Ingredients\n");
+
+  // Force newline before jalapeño counts
+  text = text.replace(/(\d+)\s+jalapeno(s?)\b/gi, "\n$1 jalapeno$2");
+
+  // Produce words fix (jalapenos, onions, garlic, etc.)
+  const produceWords = [
+    "jalapeno","jalapeño","pepper","peppers",
+    "tomato","tomatoes","onion","onions",
+    "garlic","clove","cloves","serrano","habanero"
+  ];
+
+  produceWords.forEach(word => {
+    const regex = new RegExp("(\\d[\\d\\/]*\\s+" + word + "\\b)", "gi");
+    text = text.replace(regex, "\n$1");
+  });
+
+  // Split before qty+unit patterns
+  text = text.replace(/(\d[\d\/\.]*(?:\s+\d[\d\/\.]*)?\s+[a-zA-Z]+\b)/g, "\n$1");
+
+  return text
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+}
+
+
+// Normalize units (U1)
+function normalizeUnit(unit) {
+  const u = unit.toLowerCase();
+  if (["ounce", "ounces", "oz"].includes(u)) return "oz";
+  if (["pound", "pounds", "lb", "lbs"].includes(u)) return "lb";
+  if (["teaspoon", "teaspoons", "tsp"].includes(u)) return "tsp";
+  if (["tablespoon", "tablespoons", "tbsp", "tbs"].includes(u)) return "tbsp";
+  if (["cup", "cups"].includes(u)) return "cup";
+  if (["strip", "strips"].includes(u)) return "strip";
+  if (["clove", "cloves"].includes(u)) return "clove";
+  if (["slice", "slices"].includes(u)) return "slice";
+  if (["block", "blocks"].includes(u)) return "block";
+  return unit;
+}
+
+// Extract prep words (P2)
+function extractPrep(name) {
+  const prepWords = [
+    "softened","chopped","shredded","minced","beaten",
+    "diced","sliced","peeled","grated","crushed"
+  ];
+
+  let words = name.split(" ").filter(w => w.length > 0);
+  let prep = [];
+
+  while (words.length > 0) {
+    const last = words[words.length - 1].toLowerCase();
+    if (prepWords.includes(last)) {
+      prep.unshift(words.pop());
+    } else {
+      break;
+    }
+  }
+
+  return {
+    name: words.join(" "),
+    prep: prep.join(" ")
+  };
+}
+// Parse a single ingredient line into qty/unit/name/prep
+function parseIngredient(line) {
+
+  // Special case: Oil for frying (Option C)
+  if (/oil\s+for\s+frying/i.test(line)) {
+    return {
+      qty: "as needed",
+      unit: "",
+      name: "Oil",
+      prep: "for frying"
+    };
+  }
+
+  let qty = "";
+  let unit = "";
+  let name = line;
+  let prep = "";
+
+  // Match qty (including ranges)
+  const qtyMatch = line.match(/^(\d+(?:\s+\d+\/\d+)?|\d+\/\d+)(?:\s+to\s+(\d+(?:\s+\d+\/\d+)?|\d+\/\d+))?\s+(.*)$/);
+  if (qtyMatch) {
+    qty = qtyMatch[2] ? qtyMatch[1] + " to " + qtyMatch[2] : qtyMatch[1];
+    name = qtyMatch[3];
+  } else {
+    return { qty: "", unit: "", name: line, prep: "" };
+  }
+
+  // Extract unit
+  let parts = name.split(" ").filter(w => w.length > 0);
+  if (parts.length > 0) {
+    unit = parts.shift();
+    name = parts.join(" ");
+  }
+
+  // MU4: cream cheese block handling
+  if (/cream\s+cheese/i.test(line) && /block/i.test(line)) {
+    unit = "block";
+    name = /8\s*oz|8\s*ounce|8-ounce/i.test(line)
+      ? "8 oz cream cheese"
+      : "cream cheese";
+  }
+
+  unit = normalizeUnit(unit);
+
+  // Extract prep (P2)
+  const prepResult = extractPrep(name);
+  name = prepResult.name;
+  prep = prepResult.prep;
+
+  return { qty, unit, name, prep };
+}
+
+
+/* ========== INGREDIENT TABLE HELPERS ========== */
+function addIngredientRow(qty = "", unit = "", name = "", prep = "") {
+  const tbody = document.querySelector("#ingredientsTable tbody");
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="ing-qty" value="${qty}"></td>
+    <td><input class="ing-unit" value="${unit}"></td>
+    <td><input class="ing-name" value="${name}"></td>
+    <td><input class="ing-prep" value="${prep}"></td>
+    <td><button class="btn secondary removeRow">X</button></td>
+  `;
+
+  tbody.appendChild(tr);
+
+  tr.querySelector(".removeRow").addEventListener("click", () => {
+    tr.remove();
+  });
+}
+
+document.getElementById("addIngredient").addEventListener("click", () => {
+  addIngredientRow();
+});
+
+/* ========== EXTRACT RECIPE STRUCTURE ========== */
+function extractRecipe(text) {
+  const recipe = {
+    name: "",
+    category: "",
+    ingredients: [],
+    directions: [],
+    notes: []
+  };
+
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length === 0) return recipe;
+
+  const lower = lines.map(l => l.toLowerCase());
+
+  const idxIng = lower.findIndex(l => l.includes("ingredient"));
+  const idxDir = lower.findIndex(l => l.includes("instruction") || l.includes("direction"));
+  const idxNotes = lower.findIndex(l => l.includes("note"));
+
+  recipe.name = lines[0];
+
+  if (idxIng !== -1) {
+    const end = idxDir !== -1 ? idxDir : lines.length;
+    const ingBlock = lines.slice(idxIng + 1, end).join(" ");
+    recipe.ingredients = smartSplitIngredients(ingBlock);
+  }
+
+  if (idxDir !== -1) {
+    const end = idxNotes !== -1 ? idxNotes : lines.length;
+    recipe.directions = lines.slice(idxDir + 1, end);
+  }
+
+  if (idxNotes !== -1) {
+    recipe.notes = lines.slice(idxNotes + 1);
+  }
+
+  return recipe;
+}
+
+/* ========== BUILD RECIPE FROM FORM ========== */
+function buildRecipeFromForm() {
+  const ingredientRows = Array.from(document.querySelectorAll("#ingredientsTable tbody tr"));
+
+  const ingredients = ingredientRows.map(row => ({
+    qty: row.querySelector(".ing-qty").value.trim(),
+    unit: row.querySelector(".ing-unit").value.trim(),
+    name: row.querySelector(".ing-name").value.trim(),
+    prep: row.querySelector(".ing-prep").value.trim()
+  }));
+
+  const directions = directionsInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  const notes = notesInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+  return {
+    name: nameInput.value.trim(),
+    category: categoryInput.value.trim(),
+    ingredients,
+    directions,
+    notes
+  };
+}
+/* ========== SAVE TO LOCALSTORAGE ========== */
+function saveRecipeToStorage(recipe) {
+  const KEY = "rcp_recipes";
+
+  let recipes = [];
+  try {
+    const stored = localStorage.getItem(KEY);
+    if (stored) recipes = JSON.parse(stored);
+    if (!Array.isArray(recipes)) recipes = [];
+  } catch {
+    recipes = [];
+  }
+
+  recipes.push(recipe);
+  localStorage.setItem(KEY, JSON.stringify(recipes));
+}
+
+/* ========== FILL FORM FROM CLEANED TEXT ========== */
+function fillFromCleaned(cleanedText) {
+  const extracted = extractRecipe(cleanedText);
+
+  nameInput.value = extracted.name || "";
+  categoryInput.value = "";
+
+  const ingLines = extracted.ingredients || [];
+
+  debugLines.textContent = JSON.stringify(ingLines, null, 2);
+
+  document.querySelector("#ingredientsTable tbody").innerHTML = "";
+
+  const parsedList = [];
+
+  ingLines.forEach(line => {
+    const ing = parseIngredient(line);
+    parsedList.push(ing);
+    addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
+  });
+
+  debugParsed.textContent = JSON.stringify(parsedList, null, 2);
+
+  directionsInput.value = (extracted.directions || []).join("\n");
+  notesInput.value = (extracted.notes || []).join("\n");
+}
+
+/* ========== OCR + FILL FORM ========== */
+runOCR.addEventListener('click', async () => {
+  if (!selectedImage) {
+    alert("Please select an image first.");
+    return;
+  }
+
+  output.value = "Processing…";
+
+  const result = await Tesseract.recognize(selectedImage, 'eng', {
+    logger: m => console.log(m)
+  });
+
+  lastRawOCR = result.data.text || "";
+  const cleaned = cleanOCRText(lastRawOCR);
+
+  output.value = cleaned;
+
+  debugRaw.value = lastRawOCR;
+  debugCleaned.value = cleaned;
+
+  fillFromCleaned(cleaned);
+});
+
+/* ========== SHOW JSON ========== */
+showJsonBtn.addEventListener('click', () => {
+  const recipe = buildRecipeFromForm();
+  jsonOutput.style.display = jsonOutput.style.display === "none" ? "block" : "none";
+  jsonOutput.textContent = JSON.stringify(recipe, null, 2);
+});
+
+/* ========== SAVE RECIPE ========== */
+saveBtn.addEventListener('click', () => {
+  const recipe = buildRecipeFromForm();
+
+  if (!recipe.name) {
+    alert("Please enter a recipe name.");
+    return;
+  }
+
+  // SAFETY FEATURE: auto-assign category if missing
+  if (!recipe.category || recipe.category.trim() === "") {
+    recipe.category = "Uncategorized";
+  }
+
+  saveRecipeToStorage(recipe);
+  alert("Recipe saved!");
+});
+
+
+/* ========== DEBUG PANEL ========== */
+debugToggle.addEventListener('click', () => {
+  debugPanel.style.display = debugPanel.style.display === "none" ? "block" : "none";
+});
+
+debugReparse.addEventListener('click', () => {
+  const cleaned = debugCleaned.value;
+  output.value = cleaned;
+  fillFromCleaned(cleaned);
+});
+</script>
+
+</body>
+</html>
