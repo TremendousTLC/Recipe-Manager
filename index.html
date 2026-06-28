@@ -438,8 +438,11 @@ width: 115px;          /* or whatever you want */
 
     <div id="listRoot"></div>
   </div>
+  
+	<!-- Send Ingredients button - to shopping manager  -->
+	<button onclick="sendToShopping(recipe.id)">Add Ingredients to Shopping List</button>
 
-  <!-- Capture Recipe button -->
+	<!-- Capture Recipe button -->
   <button onclick="window.location.href='capture.html'">Capture a New Recipe</button>
 
   <!-- Modal editor -->
@@ -1149,6 +1152,42 @@ document.getElementById("customTimerBtn").addEventListener("click", () => {
 });
 
 console.log("TEST: did the script reach the bottom?");
+
+function sendToShopping(recipeId){
+  window.location.href =
+    "https://TremendousTLC.github.io/shopping-list-manager/?recipe=" + recipeId;
+}
+
+if (recipeId){
+  loadRecipeFromServer(recipeId);
+}
+
+function loadRecipeFromServer(recipeId){
+  fetch("https://TremendousTLC.github.io/recipe-manager/recipes.json")
+    .then(res => res.json())
+    .then(data => {
+      const recipe = data.recipes.find(r => r.id == recipeId);
+      if (!recipe){
+        showToast("Recipe not found");
+        return;
+      }
+
+      recipe.ingredients.forEach(ing => {
+        const qty = ing.qty || "";
+        const unit = ing.unit || "";
+        const fullQty = (qty + " " + unit).trim();
+
+        addItemToList(ing.name, fullQty);
+      });
+
+      showToast("Ingredients added from recipe");
+    })
+    .catch(err => {
+      console.error("Error loading recipe:", err);
+      showToast("Could not load recipe");
+    });
+}
+
 
 </script>
 </body>

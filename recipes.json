@@ -1,0 +1,1006 @@
+{
+  "recipes": [
+    {
+      "id": "r1782679720056",
+      "name": "Eggplant - regular feeding (every 7 - 10 days)",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "Gal",
+          "name": "Rain Water",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Fish Fertilizer",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Molasses",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell Powder - use once after planting",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Bone Meal - use only as needed for deficiency - purple leaves",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "T",
+          "name": "Buttermilk - every two weeks",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [
+        "Weekly fish + molasses\nEggshell once\nBone meal only if deficiency\n\n➕ During fruiting\nSlightly more molasses (eggplant loves potassium)\n\nNEVER\nEpsom\nCalcium nitrate\nMiracle‑Gro\nYeast"
+      ],
+      "updated": 1782680799441
+    },
+    {
+      "id": "r1782338014453",
+      "name": "Peppers regular Feeding (every 7-10 days)",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "Gal",
+          "name": "Rain Water",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Fish Fertilizer",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Mollasses",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell Powder, only given once after planting, scratched in",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Bone Meal - Only if needed - leaves are purple due to calcium deficiency",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "T",
+          "name": "Buttermilk - every 2 weeks",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [],
+      "updated": 1782680822127
+    },
+    {
+      "id": "r1782337762216",
+      "name": "Peppers - in hole mix for transplanting",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Bone Meal",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell Powder",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Perlite",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Mix Perlite into backfill."
+      ],
+      "notes": [
+        "DO NOT USE IN THE HOLE FOR PEPPERS:\nEpsom salt → peppers are magnesium‑sensitive\nCalcium nitrate → burns young roots\nMiracle‑Gro → too “hot” in Texas heat\nYeast/molasses/fish → attracts ants & pests underground\nVermiculite → holds too much moisture"
+      ],
+      "updated": 1782337762216
+    },
+    {
+      "id": "r1782252624496",
+      "name": "Beef Stroganoff",
+      "category": "ENTREES",
+      "ingredients": [
+        {
+          "qty": "1-2",
+          "unit": "lbs",
+          "name": "Sirloin Steek",
+          "prep": "Trimmed & Thinly sliced"
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Olive Oil",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Butter, unsalted",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "Medium",
+          "name": "Onion",
+          "prep": "Finely chopped"
+        },
+        {
+          "qty": "1/2",
+          "unit": "lb",
+          "name": "Brown Mushrooms",
+          "prep": "Thickly Sliced"
+        },
+        {
+          "qty": "1",
+          "unit": "Clove",
+          "name": "Garlic",
+          "prep": "Minced"
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "All-Purpose Flour",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Beef Broth",
+          "prep": ""
+        },
+        {
+          "qty": "3/4",
+          "unit": "C",
+          "name": "Heavy Whipping Cream",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Sour Cream",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Worcestershire Sauce",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "t",
+          "name": "Dijon Mustard",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "t",
+          "name": "Salt",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "t",
+          "name": "Black Pepper",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Green Onion or Parsley",
+          "prep": ""
+        },
+        {
+          "qty": "8 - 12",
+          "unit": "Oz",
+          "name": "Egg Noodles",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Place a large deep pan or dutch oven over medium-high heat. Add 2 Tbsp oil and once oil is very hot, add thinly sliced beef strips in a single layer, cooking 1 minute per side without stirring. Cook until just browned and no longer red. Sear beef in 2 batches so you don't overcrowd the pan. Remove beef to a plate and cover to keep warm.",
+        "Add 2 Tbsp butter, chopped onion and sliced mushrooms. Sautee 6-8 minutes or until liquid has evaporated and onions and mushrooms are soft and lightly browned.",
+        "Add 1 minced garlic clove and sautee 1 minute until fragrant. Add 1 Tbsp flour and sautee another minute stirring constantly.",
+        "Pour in 1 cups beef broth, scraping any bits from the bottom of the pan then add 3/4 cup whipping cream and simmer another 1 to 2 minutes or until slightly thickened.",
+        "Stir a few Tablespoons of the sauce into 1/4 cup of sour cream to temper it so the sour cream doesn’t curdle then add it to the pan while stirring constantly.",
+        "Stir in 1 Tbsp Worcestershire, 1/2 tsp dijon mustard, and season with 1/2 tsp salt and 1/4 tsp pepper, or season to taste and continue simmering until sauce is creamy. Add beef with any accumulated juices back to the pan and bring just to a simmer or until beef is heated through."
+      ],
+      "notes": [
+        "For best results, be sure your meat is either: Top Sirloin, Boneless Ribeye steak, Beef Tenderloin (Filet Mignon), or Filet Mignon tips. Thinly slice against the grain to ensure tender bites of beef."
+      ],
+      "updated": 1782252624497
+    },
+    {
+      "id": "r1781995268667",
+      "name": "Cucumbers - supplements when transplanting",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Bone Meal",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell Powder",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Perlite",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [
+        "DO NOT PUT THESE IN CUCUMBER HOLE:\nEpsom salt, calcium nitrate, Miracle‑Gro, yeast, vermiculite, molasses, fish fertilizer"
+      ],
+      "updated": 1782680415533
+    },
+    {
+      "id": "r1781994182057",
+      "name": "Cucumber - Regular Feeding every 7 - 10 days",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Molasses",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Fish Fertilizer",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Bone Meal - use once (see note)",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Epsom Salt - - used only if deficiency noticed",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "Gal",
+          "name": "Ran Water",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "T",
+          "name": "Buttermilk - every 2 weeks",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [
+        "• Bone meal once at week 2–3 scratched into the ground.\n• Epsom salt only if deficiency\nEpsom salt\nUse only if you see:\nYellowing between veins\nPale new growth\nApply no more than once every 3–4 weeks\n\nNEVER USE ON CUCUMBERS:\nCalcium nitrate, Miracle‑Gro, yeast, rooting powder"
+      ],
+      "updated": 1782680920379
+    },
+    {
+      "id": "r1781993912199",
+      "name": "Okra - Regular Feeding every 7 - 14 days",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "",
+          "unit": "",
+          "name": "Fish Fertilizer",
+          "prep": ""
+        },
+        {
+          "qty": "",
+          "unit": "",
+          "name": "Molasses",
+          "prep": ""
+        },
+        {
+          "qty": "",
+          "unit": "",
+          "name": "Bone Meal - used once (see note)",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [
+        "Bone Meal used once at week 3 to week 4\n\nNEVER USE ON OKRA:\nEpsom salt, calcium nitrate, Miracle‑Gro, yeast, rooting powder, buttermilk"
+      ],
+      "updated": 1782680136615
+    },
+    {
+      "id": "r1781993011958",
+      "name": "Okra hole when transplanting",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Bone Meal",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Perlite",
+          "prep": ""
+        }
+      ],
+      "directions": [],
+      "notes": [
+        "DO NOT ADD THESE TO THE OKRA HOLE:\n\nEpson Salt\nMiracle Gro - Rose Food\nYeast\nMolasses\nFish Fertilizer\nvermiculite"
+      ],
+      "updated": 1781993011958
+    },
+    {
+      "id": "r1781992742586",
+      "name": "Tomato Hole Mix when transplanting",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Bone Meal",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Epson Salt",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell Powder",
+          "prep": ""
+        },
+        {
+          "qty": "",
+          "unit": "",
+          "name": "Rooting powder",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "C",
+          "name": "Perlite",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Vermiculite",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "dip stem lightly in rooting powder\n\nMix Perlite & Vermiculite in with the backfill"
+      ],
+      "notes": [
+        "DO NOT PUT THESE IN THE HOLE\n\nCalcium Nitrate\nMiracle Grow- Rose Food\nYeast\nMollasses\nFish Fertilizer"
+      ],
+      "updated": 1781994938157
+    },
+    {
+      "id": "r1781904629015mgozfs",
+      "name": "Armadillo Eggs",
+      "category": "APPETIZERS",
+      "ingredients": [
+        {
+          "qty": "3/4 to 101",
+          "unit": "block",
+          "name": "8 oz cream cheese",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "tsp",
+          "name": "roasted garlic",
+          "prep": "minced"
+        },
+        {
+          "qty": "2",
+          "unit": "tsp",
+          "name": "onion powder",
+          "prep": ""
+        },
+        {
+          "qty": "1 1/2",
+          "unit": "lb",
+          "name": "ground pork sausage",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "large",
+          "name": "eggs",
+          "prep": "beaten"
+        },
+        {
+          "qty": "as needed",
+          "unit": "",
+          "name": "Oil",
+          "prep": "for frying"
+        }
+      ],
+      "directions": [
+        "1. With a knife, cut out a long and narrow slit from the top of each pepper to remove the seeds. Keep the stems attached.",
+        "2. Roast the peppers over a burner until they just begin to blister and soften.",
+        "3. Ina mixing bowl, combine the cream cheese, shredded cheese, roasted garlic and onion powder. Stuff the peppers with cheese mixture.",
+        "4. Cut the sausage into 12 equal slices. Take one slice and roll out thinly between two pieces of waxed paper.",
+        "5. Place a pepper in the center of sausage round and form around the pepper, leaving the stem out. Repeat with the remaining peppers and sausage.",
+        "6. Place the eggs in a bowl and roll the wrapped peppers in the egg wash then coat generously with the potato flakes. Repeat in the egg wash and potato flakes for a double coating.",
+        "7. Add 2 to 3 inches of fry oil to a deep fryer or Dutch oven and heat to 350 degrees Fry the peppers for about 4 minutes, turning occasionally, until a deep golden brown and crispy. Remove and let cool slightly on a paper towel or wire rack. Serve warm."
+      ],
+      "notes": [],
+      "updated": 1782682068481
+    },
+    {
+      "id": "r1779984481732",
+      "name": "Potato Salad",
+      "category": "SALADS",
+      "ingredients": [
+        {
+          "qty": "3",
+          "unit": "lb",
+          "name": "Yukon Gold Potatoes",
+          "prep": "Peeled and cubed"
+        },
+        {
+          "qty": "4",
+          "unit": "",
+          "name": "Eggs, Large",
+          "prep": "Hard boiled"
+        },
+        {
+          "qty": "1",
+          "unit": "C",
+          "name": "Mayonnaise",
+          "prep": "Duke's"
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Buttermilk",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Mustard - yellow",
+          "prep": "or 1/2 dijon"
+        },
+        {
+          "qty": "2",
+          "unit": "",
+          "name": "Dill Pickles",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Salt",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Pepper",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "Ribs",
+          "name": "Celery",
+          "prep": "Chopped"
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Onion, Red",
+          "prep": "Chopped"
+        }
+      ],
+      "directions": [
+        "Boil and Chop Potatoes: Place the whole, unpeeled potatoes in a large pot of water. Bring the water to a boil, then lower the heat and simmer for 10 to 15 minutes, until the potatoes are fork tender. Drain the water completely from the pot and then cover the pot with a lid to allow the potatoes to steam for 5-10 minutes. Peel potatoes, if desired, and cut them into ½ inch chunks.",
+        "Make Dressing: Separate egg yolks from the whites of the hard boiled eggs and place the yolks in a bowl. Mash the yolks with a fork and then stir in the mayonnaise, buttermilk, mustard, a splash of pickle juice, and salt and pepper, to taste.",
+        "Assemble: Pour the dressing over the warm potatoes. Chop the egg whites and add them to the potatoes along with the celery, onion, and pickles. Stir well, cover, and refrigerate for a few hours to allow the flavors to blend."
+      ],
+      "notes": [
+        "Make Ahead Instructions: potato salad can be made 1-2 days ahead of time. It tastes best if refrigerated for at least a few hours before serving. Store leftover potato salad in the fridge for up to 5 days."
+      ],
+      "updated": 1779984481732
+    },
+    {
+      "id": "r1775850026548",
+      "name": "Eggplant dry mix",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Bone Meal",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Epson Salt",
+          "prep": ""
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Eggshell powder",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "make trench around plant 6 to 8 inches away from the stem. 1 to 2 inches deep",
+        "add dry mix around the trench",
+        "pull soil over the trench.\n\nwater slowly with Mallasses, epson, and worm-tea mix"
+      ],
+      "notes": [],
+      "updated": 1781994913799
+    },
+    {
+      "id": "r1771346893126",
+      "name": "Tropical Delight Smoothie",
+      "category": "SMOOTHIES",
+      "ingredients": [
+        {
+          "qty": "2 1/2",
+          "unit": "C",
+          "name": "Coconut Milk",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "C",
+          "name": "Pineapple Juice",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Install Stacked blade in the 72 oz pitcher",
+        "Place all ingredients in the pitcher in the order listed, and install the lid",
+        "Select Blendesense then press start/stop",
+        "when blending is complete, open the pour spout, pour into cups and serve"
+      ],
+      "notes": [],
+      "updated": 1782682529143
+    },
+    {
+      "id": "r1771601596267",
+      "name": "Strawberry Peach Cobbler",
+      "category": "DESSERTS",
+      "ingredients": [
+        {
+          "name": "Strawberries"
+        },
+        {
+          "name": "Peaches"
+        },
+        {
+          "name": "Sugar, granulated"
+        },
+        {
+          "name": "Flour, all-purpose"
+        },
+        {
+          "name": "Lemon Juice"
+        }
+      ],
+      "directions": [],
+      "notes": [],
+      "updated": 1771601596270
+    },
+    {
+      "id": "r1771279084892",
+      "name": "Salsa",
+      "category": "SIDES",
+      "ingredients": [
+        {
+          "qty": "3",
+          "unit": "",
+          "name": "Roma Tomatoes",
+          "prep": "Cored, quartered"
+        },
+        {
+          "qty": "1/4",
+          "unit": "C",
+          "name": "Cilantro",
+          "prep": "De-stemmed"
+        },
+        {
+          "qty": "1",
+          "unit": "",
+          "name": "Yellow Pepper",
+          "prep": "Cored, quartered"
+        },
+        {
+          "qty": "3",
+          "unit": "",
+          "name": "Jalepeno Pepper",
+          "prep": "Cored, quartered"
+        },
+        {
+          "qty": "1/2",
+          "unit": "",
+          "name": "Red Onion",
+          "prep": "Peeled"
+        },
+        {
+          "qty": "1",
+          "unit": "Can",
+          "name": "Whole Tomatoes",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "Cloves",
+          "name": "Garlic",
+          "prep": "Peeled, diced"
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Lime Juice",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Cumin",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Kosher Salt",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "t",
+          "name": "Black Pepper",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Install stacked blad into 72oz pitcher",
+        "Place ingredients in pitcher as listed, install the lid",
+        "Select mode, MINCE, then press Start/Stop. When complete, MINCE one more time",
+        "Remove lid and stacked blade, pour into large bowl."
+      ],
+      "notes": [
+        "Using jalapeño seeds adds the heat!"
+      ],
+      "updated": 1781815412011
+    },
+    {
+      "id": "r1775743008489",
+      "name": "Tomato Mix - Regular Feeding every 7 - 10 days",
+      "category": "Garden Mixes",
+      "ingredients": [
+        {
+          "qty": "1",
+          "unit": "Gal",
+          "name": "Rain Water",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Mollasses",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Fish Fertilizer",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "T",
+          "name": "Bone Meal - - use once at week 2 -3, scratched into ground",
+          "prep": ""
+        },
+        {
+          "qty": "3",
+          "unit": "T",
+          "name": "Buttermilk every 2 weeks",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Dilute Molasses in 1 cup of the 1 gallon of rainwater in 2 cup liquid measuring cup.\nput in 3 pint jar. add fish fertilizer. shake and mix well"
+      ],
+      "notes": [
+        "Epson salt to be used only when a magnesium deficiency is noticed\nBone Meal to be added only if purple leaves\n\nNEVER USE ON TOMATOES:\nYeast, Miracle‑Gro rose food, rooting powder"
+      ],
+      "updated": 1782680985889
+    },
+    {
+      "id": "r1772752567583",
+      "name": "Tacos",
+      "category": "ENTREES",
+      "ingredients": [
+        {
+          "qty": "5",
+          "unit": "tsp",
+          "name": "Paprika",
+          "prep": ""
+        },
+        {
+          "qty": "1 1/4",
+          "unit": "tsp",
+          "name": "Garlic Powder",
+          "prep": ""
+        },
+        {
+          "qty": "1 1/4",
+          "unit": "tsp",
+          "name": "Cumin",
+          "prep": "Ground"
+        },
+        {
+          "qty": "1 1/4",
+          "unit": "tsp",
+          "name": "Onion Powder",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "tsp",
+          "name": "Chili Powder",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "tsp",
+          "name": "Oregano Leaves",
+          "prep": ""
+        },
+        {
+          "qty": "1 1/2",
+          "unit": "tsp",
+          "name": "Sea Salt",
+          "prep": "Ground"
+        },
+        {
+          "qty": "1 1/2",
+          "unit": "tsp",
+          "name": "Corn Starch",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "lb",
+          "name": "beef or turkey",
+          "prep": "ground"
+        },
+        {
+          "qty": "3/4",
+          "unit": "c",
+          "name": "water",
+          "prep": ""
+        },
+        {
+          "qty": "12",
+          "unit": "6\"",
+          "name": "Flour Tortillas",
+          "prep": ""
+        },
+        {
+          "qty": "12",
+          "unit": "",
+          "name": "Hard Taco Shells",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Mix spices, herbs, salt, and corn starch in a small bowl until well blended. Set seasoning blend aside.",
+        "Brown meat in a large skillet on medium-high heat. Drain fat.",
+        "Stir in seasoning blend and water.",
+        "Bring to a boil. Reduce heat and simmer for 5 minutes or until slightly thickened, stirring occasionally.",
+        "Spoon into warm taco shells. Serve with desired toppings, such as shredded lettuce, chopped tomatoes, shredded cheese, salsa, and sour cream."
+      ],
+      "notes": [
+        "For a little heat, try adding 1/4 teaspoon McCormick® Crushed Red Pepper to your seasoning blend.",
+        "To make a big batch of homemade taco seasoning to have on hand, simply double, triple, or even quadruple the seasoning blend part of the recipe.",
+        "Store in an airtight container in a cool, dry place for up to 6 months.",
+        "To prepare 1 pound of taco meat, use about 4 1/2 tablespoons of the seasoning blend along with 3/4 cup water."
+      ],
+      "updated": 1772752567583
+    },
+    {
+      "id": "undefined",
+      "name": "Tropical Delight Smoothie",
+      "category": "SMOOTHIES",
+      "ingredients": [
+        {
+          "qty": "2 1/2",
+          "unit": "C",
+          "name": "Coconut Milk",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "C",
+          "name": "PineappleJuice",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Lime Juice",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "",
+          "name": "Banana",
+          "prep": "Peeled"
+        },
+        {
+          "qty": "2",
+          "unit": "C",
+          "name": "Frozen Mango pieces",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "C",
+          "name": "Frozen Pineapple pieces",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Install stached blade into 72 ounce pitcher.",
+        "Load items into pitcher in the order listed.",
+        "select BLADESENSE on blender. then press START/STOP button.",
+        "Remove the lid and the stacked blade.",
+        "pour into cups and server"
+      ],
+      "notes": [],
+      "updated": 1782682546460
+    },
+    {
+      "name": "Tropical Delight Smoothie",
+      "category": "SMOOTHIES",
+      "ingredients": [
+        {
+          "qty": "2 1/2",
+          "unit": "C",
+          "name": "Coconut Milk",
+          "prep": ""
+        },
+        {
+          "qty": "1/2",
+          "unit": "C",
+          "name": "PineappleJuice",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "T",
+          "name": "Lime Juice",
+          "prep": ""
+        },
+        {
+          "qty": "1",
+          "unit": "",
+          "name": "Banana",
+          "prep": "Peeled"
+        },
+        {
+          "qty": "2",
+          "unit": "C",
+          "name": "Frozen Mango pieces",
+          "prep": ""
+        },
+        {
+          "qty": "2",
+          "unit": "C",
+          "name": "Frozen Pineapple pieces",
+          "prep": ""
+        }
+      ],
+      "directions": [
+        "Install stached blade into 72 ounce pitcher.",
+        "Load items into pitcher in the order listed.",
+        "select BLADESENSE on blender. then press START/STOP button.",
+        "Remove the lid and the stacked blade.",
+        "pour into cups and server"
+      ],
+      "notes": []
+    }
+  ],
+  "categories": [
+    {
+      "name": "Uncategorized",
+      "color": "#f2c94c"
+    },
+    {
+      "name": "SMOOTHIES",
+      "color": "#d37e1d"
+    },
+    {
+      "name": "APPETIZERS",
+      "color": "#982542"
+    },
+    {
+      "name": "SALADS",
+      "color": "#2a9d8f"
+    },
+    {
+      "name": "SIDES",
+      "color": "#f490f1"
+    },
+    {
+      "name": "SOUPS",
+      "color": "#3a30c5"
+    },
+    {
+      "name": "CHILIS",
+      "color": "#832eea"
+    },
+    {
+      "name": "ENTREES",
+      "color": "#25d431"
+    },
+    {
+      "name": "DESSERTS",
+      "color": "#28bed2"
+    },
+    {
+      "name": "Garden Mixes",
+      "color": "#0b74de"
+    }
+  ],
+  "exportedAt": "2026-06-28T21:43:11.251Z"
+}
