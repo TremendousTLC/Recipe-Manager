@@ -439,9 +439,6 @@ width: 115px;          /* or whatever you want */
     <div id="listRoot"></div>
   </div>
   
-	<!-- Send Ingredients button - to shopping manager  -->
-	<button onclick="sendToShopping(recipe.id)">Add Ingredients to Shopping List</button>
-
 	<!-- Capture Recipe button -->
   <button onclick="window.location.href='capture.html'">Capture a New Recipe</button>
 
@@ -468,6 +465,9 @@ width: 115px;          /* or whatever you want */
         <label class="muted-note">Ingredients</label>
         <div id="ings"></div>
         <button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
+		<button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
+<button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
+
       </div>
 
       <div>
@@ -1195,6 +1195,11 @@ document.getElementById("useAsShoppingListBtn").addEventListener("click", () => 
   });
 
   showToast("All ingredients checked — review your inventory.");
+});
+
+document.getElementById("sendToShoppingBtn").addEventListener("click", () => {
+  const recipeId = rId.value;   // ID of the recipe currently open
+  sendToShopping(recipeId);
 });
 
 
