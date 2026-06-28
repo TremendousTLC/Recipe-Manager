@@ -809,6 +809,7 @@ function addIngRow(data){
   row.className = 'ing-row';
 
   row.innerHTML = `
+	<input type="checkbox" class="ingredient-check">
     <input class="ing-qty"  placeholder="Qty"  value="${escapeHtml((data && data.qty)  || '')}">
     <input class="ing-unit" placeholder="Unit" value="${escapeHtml((data && data.unit) || '')}">
     <input class="ing-name" placeholder="Name" value="${escapeHtml((data && data.name) || '')}">
@@ -1187,6 +1188,14 @@ function loadRecipeFromServer(recipeId){
       showToast("Could not load recipe");
     });
 }
+
+document.getElementById("useAsShoppingListBtn").addEventListener("click", () => {
+  document.querySelectorAll(".ingredient-check").forEach(cb => {
+    cb.checked = true;
+  });
+
+  showToast("All ingredients checked — review your inventory.");
+});
 
 
 </script>
