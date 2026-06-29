@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Recipes by Category — Improved Category Dropdown Contrast</title>
+<title>Recipes</title>
 
 <!-- SortableJS for category drag-and-drop -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" crossorigin="anonymous"></script>
@@ -551,6 +551,27 @@ const read = (k, fallback) => {
   } catch (e) { return fallback; }
 };
 const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+function saveRecipe(recipe) {
+  // Ensure recipe has an ID
+  if (!recipe.id) {
+    recipe.id = "r_" + Math.random().toString(36).slice(2,10);
+  }
+
+  // Load existing recipes
+  let recipes = read(KEY_RECIPES, []);
+
+  // Remove old version if exists
+  recipes = recipes.filter(r => r.id !== recipe.id);
+
+  // Add updated recipe
+  recipes.push(recipe);
+
+  // Save back to storage
+  write(KEY_RECIPES, recipes);
+
+  console.log("Saved recipe:", recipe);
+}
 
 /* Color helper and normalization */
 const DEFAULT_COLORS = ['#0b74de','#e07a5f','#2a9d8f','#9b5de5','#f2c94c','#f48fb1','#6c757d'];
