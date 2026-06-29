@@ -422,6 +422,21 @@ width: 115px;          /* or whatever you want */
   line-height: 1;
 }
 
+#useAsShoppingListBtn {
+  background-color: #333;   /* dark gray button */
+  color: #00e6ff;           /* your neon blue text */
+  border: 1px solid #00e6ff;
+  margin-top: 10px;
+}
+
+#sendToShoppingBtn {
+  background-color: #00e6ff; /* neon blue button */
+  color: #000;               /* black text */
+  border: none;
+  margin-top: 10px;
+}
+
+
 </style>
 </head>
 <body>
@@ -464,9 +479,12 @@ width: 115px;          /* or whatever you want */
       <div>
         <label class="muted-note">Ingredients</label>
         <div id="ings"></div>
-        <button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
-		<button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
+
+<!-- ⭐ Buttons must be OUTSIDE the ings div -->
+<button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
+<button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
 <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
+
 
       </div>
 
