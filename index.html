@@ -962,7 +962,8 @@ function addNoteRow(text){
 
 /* Open editor (uses select for category) */
 function openEditorFor(rec){
-  const r = rec || null;
+  const r = rec || { id: "", name: "", ingredients: [], directions: [], notes: [], category: "" };
+
   rId.value = r ? r.id : '';
   rName.value = r ? r.name : '';
 
@@ -1305,29 +1306,6 @@ function loadRecipeFromServer(recipeId){
       showToast("Could not load recipe");
     });
 }
-
-document.getElementById("useAsShoppingListBtn").addEventListener("click", () => {
-  document.querySelectorAll(".ingredient-check").forEach(cb => {
-    cb.checked = true;
-  });
-
-  showToast("All ingredients checked — review your inventory.");
-});
-
-document.getElementById("sendToShoppingManagerBtn").addEventListener("click", () => {
-
-  // 1️⃣ Build ingredient list from UI
-  recipe.ingredients = collectIngredients();
-
-  // 2️⃣ Give recipe a name (if you have a name field)
-  recipe.name = document.getElementById("rName")?.value.trim() || "Untitled Recipe";
-
-  // 3️⃣ Save recipe locally
-  saveRecipe(recipe);
-
-  // 4️⃣ Send recipe ID to Shopping Manager
-  window.location.href = `https://tremendoustlc.github.io/Shopping-Manager/?recipe=${recipe.id}`;
-});
 
 </script>
 </body>
