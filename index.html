@@ -552,6 +552,30 @@ const read = (k, fallback) => {
 };
 const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
+let recipe = {
+  id: null,
+  name: "",
+  ingredients: []
+};
+
+function collectIngredients() {
+  const items = [];
+
+  document.querySelectorAll(".ingredient-row").forEach(row => {
+    const name = row.querySelector(".ingredient-name")?.value.trim() || "";
+    const qty = row.querySelector(".ingredient-qty")?.value.trim() || "";
+    const unit = row.querySelector(".ingredient-unit")?.value.trim() || "";
+    const prep = row.querySelector(".ingredient-prep")?.value.trim() || "";
+
+    if (name.length > 0) {
+      items.push({ name, qty, unit, prep });
+    }
+  });
+
+  return items;
+}
+
+
 function saveRecipe(recipe) {
   // Ensure recipe has an ID
   if (!recipe.id) {
@@ -575,6 +599,7 @@ function saveRecipe(recipe) {
 
 /* Color helper and normalization */
 const DEFAULT_COLORS = ['#0b74de','#e07a5f','#2a9d8f','#9b5de5','#f2c94c','#f48fb1','#6c757d'];
+
 function colorForName(name){
   const s = String(name || 'Uncategorized');
   let h = 0;
@@ -1287,13 +1312,20 @@ document.getElementById("useAsShoppingListBtn").addEventListener("click", () => 
   showToast("All ingredients checked — review your inventory.");
 });
 
-document.getElementById("sendToShoppingBtn").addEventListener("click", () => {
-  const recipeId = rId.value;
-  console.log("SEND BUTTON CLICKED, ID =", recipeId);
-  sendToShopping(recipeId);
+document.getElementById("sendToShoppingManagerBtn").addEventListener("click", () => {
+
+  // 1️⃣ Build ingredient list from UI
+  recipe.ingredients = collectIngredients();
+
+  // 2️⃣ Give recipe a name (if you have a name field)
+  recipe.name = document.getElementById("rName")?.value.trim() || "Untitled Recipe";
+
+  // 3️⃣ Save recipe locally
+  saveRecipe(recipe);
+
+  // 4️⃣ Send recipe ID to Shopping Manager
+  window.location.href = `https://tremendoustlc.github.io/Shopping-Manager/?recipe=${recipe.id}`;
 });
-
-
 
 </script>
 </body>
