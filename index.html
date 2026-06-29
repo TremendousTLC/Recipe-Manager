@@ -561,11 +561,11 @@ let recipe = {
 function collectIngredients() {
   const items = [];
 
-  document.querySelectorAll(".ingredient-row").forEach(row => {
-    const name = row.querySelector(".ingredient-name")?.value.trim() || "";
-    const qty = row.querySelector(".ingredient-qty")?.value.trim() || "";
-    const unit = row.querySelector(".ingredient-unit")?.value.trim() || "";
-    const prep = row.querySelector(".ingredient-prep")?.value.trim() || "";
+  document.querySelectorAll("#ings .ing-row").forEach(row => {
+    const name = row.querySelector(".ing-name")?.value.trim() || "";
+    const qty  = row.querySelector(".ing-qty")?.value.trim() || "";
+    const unit = row.querySelector(".ing-unit")?.value.trim() || "";
+    const prep = row.querySelector(".ing-prep")?.value.trim() || "";
 
     if (name.length > 0) {
       items.push({ name, qty, unit, prep });
@@ -574,7 +574,6 @@ function collectIngredients() {
 
   return items;
 }
-
 
 function saveRecipe(recipe) {
   // Ensure recipe has an ID
@@ -1046,7 +1045,9 @@ function openEditorFor(rec){
 function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modalMask.style.display='none'; }
 
 /* Add new recipe */
+const addNew = document.getElementById("addNew");
 addNew.addEventListener('click', ()=> openEditorFor(null) );
+
 
 /* Add category prompt */
 addCategory.addEventListener('click', ()=>{
