@@ -449,7 +449,11 @@ width: 115px;          /* or whatever you want */
       <button id="addCategory" class="btn">Add Category</button>
     </div>
 
-    <div class="import-export-row" id="importExportRow"></div>
+	<div id="importExportRow" class="toolbar-row center-row">
+	  <button id="importBtn" class="btn secondary">Import Recipes</button>
+	  <button id="exportBtn" class="btn secondary">Export Recipes</button>
+	</div>
+
 
     <div id="listRoot"></div>
   </div>
@@ -457,42 +461,43 @@ width: 115px;          /* or whatever you want */
 	<!-- Capture Recipe button -->
   <button onclick="window.location.href='capture.html'">Capture a New Recipe</button>
 
-  <!-- Modal editor -->
-  <div id="modalMask"></div>
-  <div id="modal" role="dialog" aria-hidden="true">
-    <div class="modal-head">
-      <strong id="modalTitle">Edit Recipe</strong>
-      <div class="inline">
-        <button id="saveBtn" class="btn primary">Save</button>
-        <button id="cancelBtn" class="btn">Cancel</button>
-      </div>
+ <!-- Modal editor -->
+<div id="modalMask"></div>
+<div id="modal" role="dialog" aria-hidden="true">
+  <div class="modal-head">
+    <strong id="modalTitle">Edit Recipe</strong>
+    <div class="inline">
+      <button id="saveBtn" class="btn primary">Save</button>
+      <button id="cancelBtn" class="btn">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- ⭐ ADD THIS -->
+    <input type="hidden" id="rId">
+
+    <label class="muted-note">Category</label>
+    <div class="select-wrap">
+      <select id="rCategorySelect" aria-label="Recipe category"></select>
     </div>
 
-    <div class="modal-body">
-      <label class="muted-note">Category</label>
-      <div class="select-wrap">
-        <select id="rCategorySelect" aria-label="Recipe category"></select>
-      </div>
+    <input id="rName" type="text" placeholder="Recipe name" />
 
-      <input id="rName" type="text" placeholder="Recipe name" />
+    <div>
+      <label class="muted-note">Ingredients</label>
+      <div id="ings"></div>
 
-      <div>
-        <label class="muted-note">Ingredients</label>
-        <div id="ings"></div>
+      <button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
+      <button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
+      <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
+    </div>
 
-<!-- ⭐ Buttons must be OUTSIDE the ings div -->
-<button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
-<button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
-<button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
-
-
-      </div>
-
-      <div>
-        <label class="muted-note">Directions</label>
-        <div id="dirs"></div>
-        <button id="btnAddDirection" class="btn add-btn">Add Direction</button>
-      </div>
+    <div>
+      <label class="muted-note">Directions</label>
+      <div id="dirs"></div>
+      <button id="btnAddDirection" class="btn add-btn">Add Direction</button>
+    </div>
 
 <div>
   <label class="muted-note">Notes</label>
