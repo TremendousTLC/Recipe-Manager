@@ -1046,8 +1046,10 @@ function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-
 
 /* Add new recipe */
 const addNew = document.getElementById("addNew");
-addNew.addEventListener('click', ()=> openEditorFor(null) );
-
+addNew.addEventListener('click', ()=> {
+  console.log("ADD NEW CLICKED");
+  openEditorFor(null);
+});
 
 /* Add category prompt */
 addCategory.addEventListener('click', ()=>{
