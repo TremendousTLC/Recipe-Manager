@@ -885,21 +885,53 @@ function openEditorFor(rec){
   const r = rec || null;
   rId.value = r ? r.id : '';
   rName.value = r ? r.name : '';
-  ings.innerHTML = ''; dirs.innerHTML = '';
+
+  // Clear sections
+  ings.innerHTML = '';
+  dirs.innerHTML = '';
   notes.innerHTML = '';
-  (r && r.ingredients || []).forEach(i=>addIngRow(i));
+
+  // Load ingredients (supports old flat format)
+  if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
+    // Detect grouped format
+    if (r.ingredients[0].items) {
+      r.ingredients.forEach(g => {
+        const groupEl = addGroup(g.group || "");
+        const container = groupEl.querySelector(".group-items");
+        g.items.forEach(item => addIngRow(item, container));
+      });
+    } else {
+      // OLD flat format → wrap into one group
+      const groupEl = addGroup("");
+      const container = groupEl.querySelector(".group-items");
+      r.ingredients.forEach(item => addIngRow(item, container));
+    }
+  } else {
+    // No ingredients → create one empty group + row
+    const groupEl = addGroup("");
+    const container = groupEl.querySelector(".group-items");
+    addIngRow({}, container);
+  }
+
+  // Load directions
   (r && r.directions || []).forEach(d=>addDirRow(d));
-  (r && r.notes || []).forEach(n => addNoteRow(n));
-  if(!(r && r.ingredients && r.ingredients.length)) addIngRow();
   if(!(r && r.directions && r.directions.length)) addDirRow();
+
+  // Load notes
+  (r && r.notes || []).forEach(n => addNoteRow(n));
   if (!(r && r.notes && r.notes.length)) addNoteRow();
 
+  // Title
   modalTitle.textContent = r ? 'Edit Recipe' : 'New Recipe';
+
+  // Category dropdown
   populateCategorySelect();
   const cats = Array.from(rCategorySelect.options).map(o=>o.value);
   const desired = r && r.category ? r.category : (cats[0] || 'Uncategorized');
-  if (cats.includes(desired)) rCategorySelect.value = desired;
-  else {
+
+  if (cats.includes(desired)) {
+    rCategorySelect.value = desired;
+  } else {
     const newCat = { name: desired, color: colorForName(desired) };
     const stored = normalizeCategories(read(KEY_CATS, []));
     stored.push(newCat);
@@ -907,47 +939,27 @@ function openEditorFor(rec){
     populateCategorySelect();
     rCategorySelect.value = desired;
   }
-  modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); modalMask.style.display='block';
+
+  // Open modal
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  modalMask.style.display='block';
+
+  // ⭐ SEND TO SHOPPING MANAGER BUTTON
+  const sendBtn = document.getElementById("sendToShoppingBtn");
+  sendBtn.onclick = () => {
+    const recipeId = rId.value;
+    console.log("SEND BUTTON CLICKED, ID =", recipeId);
+    sendToShopping(recipeId);
+  };
+
+  // ⭐ USE AS SHOPPING LIST BUTTON
+  const useBtn = document.getElementById("useAsShoppingListBtn");
+  useBtn.onclick = () => {
+    document.querySelectorAll(".ingredient-check").forEach(cb => cb.checked = true);
+    console.log("All ingredients checked for shopping list");
+  };
 }
-
-/* Save recipe (reads category from select) */
-saveBtn.addEventListener('click', ()=>{
-  const id = rId.value || ('r'+Date.now());
-  const name = (rName.value||'').trim();
-  if(!name){ alert('Recipe name required'); return; }
-  const category = (rCategorySelect.value||'').trim() || 'Uncategorized';
-  const ingredients = Array.from(ings.querySelectorAll('.ing-row')).map(row => {
-  const qty  = (row.querySelector('.ing-qty')?.value  || '').trim();
-  const unit = (row.querySelector('.ing-unit')?.value || '').trim();
-  const name = (row.querySelector('.ing-name')?.value || '').trim();
-  const prep = (row.querySelector('.ing-prep')?.value || '').trim();
-
-  if (!name) return null; // skip empty rows
-
-  return { qty, unit, name, prep };
-}).filter(Boolean);
-
-  const directions = Array.from(dirs.querySelectorAll('.dir-text')).map(t=> (t.value||'').trim()).filter(Boolean);
-  const notesArr = Array.from(notes.querySelectorAll('.note-text'))
-  .map(t => (t.value || '').trim())
-  .filter(Boolean);
-const rec = { id, name, category, ingredients, directions, notes: notesArr, updated: Date.now() };
-
-
-  let arr = read(KEY_RECIPES, []);
-  if(!Array.isArray(arr)) arr = [];
-  const idx = arr.findIndex(x=>x.id===id);
-  if(idx>=0) arr[idx] = rec; else arr.push(rec);
-  write(KEY_RECIPES, arr);
-
-  let cats = normalizeCategories(read(KEY_CATS, []));
-  if(!cats.some(c=>c.name===category)) {
-    cats.push({ name: category, color: colorForName(category) });
-    write(KEY_CATS, cats);
-  }
-  render();
-  closeModal();
-});
 
 /* Close modal */
 function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modalMask.style.display='none'; }
