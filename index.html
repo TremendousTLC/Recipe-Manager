@@ -528,6 +528,16 @@ width: 115px;          /* or whatever you want */
 </div>
 
 <script>
+
+const urlParams = new URLSearchParams(window.location.search);
+const recipeId = urlParams.get("recipe");
+
+if (recipeId){
+  loadRecipeFromServer(recipeId);
+}
+
+
+
 /* Storage keys */
 const KEY_RECIPES = 'rcp_recipes';
 const KEY_CATS = 'rcp_categories';
@@ -1177,10 +1187,6 @@ function sendToShopping(recipeId){
     "https://TremendousTLC.github.io/shopping-list-manager/?recipe=" + recipeId;
 }
 
-if (recipeId){
-  loadRecipeFromServer(recipeId);
-}
-
 function loadRecipeFromServer(recipeId){
   fetch("https://TremendousTLC.github.io/recipe-manager/recipes.json")
     .then(res => res.json())
@@ -1216,6 +1222,8 @@ document.getElementById("useAsShoppingListBtn").addEventListener("click", () => 
 });
 
 document.getElementById("sendToShoppingBtn").addEventListener("click", () => {
+  const recipeId = rId.value;   // FIX: define recipeId correctly
+  console.log("SEND BUTTON CLICKED");
   const recipeId = rId.value;   // ID of the recipe currently open
   sendToShopping(recipeId);
 });
