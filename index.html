@@ -830,6 +830,42 @@ footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
 
 }
 
+function addGroup(name = "") {
+  const group = document.createElement("div");
+  group.className = "ing-group";
+
+  const header = document.createElement("div");
+  header.className = "group-header";
+
+  const title = document.createElement("input");
+  title.type = "text";
+  title.className = "group-title";
+  title.placeholder = "Group name (optional)";
+  title.value = name;
+
+  const del = document.createElement("button");
+  del.className = "btn danger";
+  del.textContent = "Delete Group";
+
+  header.appendChild(title);
+  header.appendChild(del);
+
+  const items = document.createElement("div");
+  items.className = "group-items";
+
+  group.appendChild(header);
+  group.appendChild(items);
+
+  // delete group
+  del.onclick = () => group.remove();
+
+  // insert into ingredients section
+  ings.appendChild(group);
+
+  return group;
+}
+
+
 /* Editor helpers */
 function addIngRow(data){
   const row = document.createElement('div');
