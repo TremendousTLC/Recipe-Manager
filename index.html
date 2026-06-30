@@ -469,12 +469,17 @@ width: 115px;          /* or whatever you want */
     <div class="inline">
       <button id="saveBtn" class="btn primary">Save</button>
 	  
-	  <script>
-document.getElementById("saveBtn").addEventListener("click", () => {
-  console.log("SAVE CLICK FIRED");
-  saveRecipe(currentRecipe);
-});
+<script>
+function attachSaveHandler() {
+  const btn = document.getElementById("saveBtn");
+  btn.onclick = () => {
+    console.log("SAVE CLICK FIRED");
+    saveRecipe(currentRecipe);
+    closeModal(); // closes the editor
+  };
+}
 </script>
+
 	  
       <button id="cancelBtn" class="btn">Cancel</button>
     </div>
@@ -1042,6 +1047,17 @@ function openEditorFor(rec){
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
   modalMask.style.display='block';
+  
+  // Attach Save handler NOW that the modal is open
+const btn = document.getElementById("saveBtn");
+btn.onclick = () => {
+  console.log("SAVE CLICK FIRED");
+  saveRecipe(currentRecipe);
+  modal.classList.remove('open');        // close modal
+  modal.setAttribute('aria-hidden','true');
+  modalMask.style.display='none';
+};
+
 
   // ⭐ SEND TO SHOPPING MANAGER BUTTON
   const sendBtn = document.getElementById("sendToShoppingBtn");
