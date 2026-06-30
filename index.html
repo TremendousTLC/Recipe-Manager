@@ -1146,7 +1146,11 @@ addCategory.addEventListener('click', ()=>{
 });
 
 /* Add ingredient/direction */
-addIng.addEventListener('click', ()=> addIngRow());
+addIng.addEventListener('click', () => {
+  const lastGroup = document.querySelector(".ing-group:last-of-type .group-items");
+  addIngRow({}, lastGroup);
+});
+
 addDir.addEventListener('click', ()=> addDirRow());
 addNote.addEventListener('click', () => addNoteRow());
 cancelBtn.addEventListener('click', closeModal);
