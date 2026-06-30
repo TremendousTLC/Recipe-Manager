@@ -1101,18 +1101,10 @@ function openEditorFor(rec){
   modal.setAttribute('aria-hidden','false');
   modalMask.style.display='block';
   
-  // Attach Save handler NOW that the modal is open
-const btn = document.getElementById("saveBtn");
-btn.onclick = () => {
-  console.log("SAVE CLICK FIRED");
+  document.getElementById("saveBtn").onclick = () => {
   saveRecipe(currentRecipe);
-  modal.classList.remove('open');        // close modal
-  modal.setAttribute('aria-hidden','true');
-  modalMask.style.display='none';
-  console.log("MODAL OPENED — SAVE BUTTON EXISTS NOW");
 };
-
-
+  
   // ⭐ SEND TO SHOPPING MANAGER BUTTON
   const sendBtn = document.getElementById("sendToShoppingBtn");
   sendBtn.onclick = () => {
