@@ -1335,7 +1335,9 @@ function loadRecipeFromServer(recipeId){
       // list = [];
 
       // Add each ingredient to your UI
-      currentRecipe.ingredients.forEach(ing => {
+      const ings = Array.isArray(currentRecipe.ingredients) ? currentRecipe.ingredients : [];
+ings.forEach(ing => {
+
         const qty = ing.qty || "";
         const unit = ing.unit || "";
         const fullQty = (qty + " " + unit).trim();
@@ -1366,6 +1368,9 @@ setTimeout(() => {
   console.log("Save button handler attached (clean reset)");
 }, 500);
 
+console.log("RAW RECIPES:", read(KEY_RECIPES, []));
+
+
 
 </script>
 
@@ -1380,7 +1385,9 @@ function renderRecipeItems(recipe) {
   const container = document.getElementById("recipeItems");
   container.innerHTML = "";
 
-  recipe.items.forEach(item => {
+const items = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+items.forEach(item => {
+
     const li = document.createElement("li");
     li.className = "recipe-item";
 
