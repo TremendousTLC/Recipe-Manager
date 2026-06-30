@@ -1153,6 +1153,34 @@ addNote.addEventListener('click', () => addNoteRow());
 cancelBtn.addEventListener('click', closeModal);
 modalMask.addEventListener('click', closeModal);
 
+function collectIngredientsFromEditor() {
+  const groups = [];
+
+  document.querySelectorAll(".ing-group").forEach(groupEl => {
+    const groupName = groupEl.querySelector(".group-title")?.value.trim() || "";
+    const items = [];
+
+    groupEl.querySelectorAll(".ing-row").forEach(row => {
+      const name = row.querySelector(".ing-name")?.value.trim() || "";
+      const qty  = row.querySelector(".ing-qty")?.value.trim() || "";
+      const unit = row.querySelector(".ing-unit")?.value.trim() || "";
+      const prep = row.querySelector(".ing-prep")?.value.trim() || "";
+
+      if (name.length > 0) {
+        items.push({ name, qty, unit, prep });
+      }
+    });
+
+    groups.push({
+      group: groupName,
+      items: items
+    });
+  });
+
+  return groups;
+}
+
+
 /* Import/Export JSON wiring */
 (function wireImportExport(){
   const toolbar = document.getElementById('toolbar');
