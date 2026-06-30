@@ -1401,6 +1401,10 @@ function renderRecipeItems(recipe) {
 
 renderRecipeItems(recipes[0]);
 
+document.getElementById("saveBtn").addEventListener("click", () => {
+  saveRecipe(currentRecipe);
+});
+
 </script>
 
 
