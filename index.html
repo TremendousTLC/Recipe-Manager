@@ -471,42 +471,32 @@ width: 115px;          /* or whatever you want */
 	<!-- Capture Recipe button -->
   <button onclick="window.location.href='capture.html'">Capture a New Recipe</button>
 
- <!-- Modal editor -->
+<!-- Modal editor -->
 <div id="modalMask"></div>
 <div id="modal" role="dialog" aria-hidden="true">
   <div class="modal-head">
     <strong id="modalTitle">Edit Recipe</strong>
     <div class="inline">
       <button id="saveBtn" class="btn primary">Save</button>
-	  
-<script>
-function attachSaveHandler() {
-  const btn = document.getElementById("saveBtn");
-  btn.onclick = () => {
-    console.log("SAVE CLICK FIRED");
-    saveRecipe(currentRecipe);
-    closeModal(); // closes the editor
-  };
-}
-</script>
-
-	  
       <button id="cancelBtn" class="btn">Cancel</button>
     </div>
   </div>
 
   <div class="modal-body">
 
-    <!-- ⭐ ADD THIS -->
+    <!-- Hidden ID -->
     <input type="hidden" id="rId">
 
+    <!-- Category -->
     <label class="muted-note">Category</label>
     <div class="select-wrap">
       <select id="rCategorySelect" aria-label="Recipe category"></select>
     </div>
 
+    <!-- Name -->
     <input id="rName" type="text" placeholder="Recipe name" />
 
+    <!-- Ingredients -->
     <div>
       <label class="muted-note">Ingredients</label>
       <div id="ings"></div>
@@ -516,37 +506,69 @@ function attachSaveHandler() {
       <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
 
+    <!-- Directions -->
     <div>
       <label class="muted-note">Directions</label>
       <div id="dirs"></div>
       <button id="btnAddDirection" class="btn add-btn">Add Direction</button>
     </div>
 
-<div>
-  <label class="muted-note">Notes</label>
-  <div id="notes"></div>
-  <button id="btnAddNote" class="btn add-btn">Add Note</button>
-</div>
+    <!-- Notes -->
+    <div>
+      <label class="muted-note">Notes</label>
+      <div id="notes"></div>
+      <button id="btnAddNote" class="btn add-btn">Add Note</button>
+    </div>
 
-<div style="margin-top:20px;">
-  <div class="timer-label">Timers</div>
+    <!-- Timers -->
+    <div style="margin-top:20px;">
+      <div class="timer-label">Timers</div>
 
-  <div id="timerButtonsRow">
-    <button class="timer-btn" data-min="1">1 min</button>
-    <button class="timer-btn" data-min="5">5 min</button>
-    <button class="timer-btn" data-min="10">10 min</button>
-    <button class="timer-btn" data-min="15">15 min</button>
-    <button class="timer-btn" data-min="20">20 min</button>
-    <button class="timer-btn" data-min="30">30 min</button>
-  </div>
+      <div id="timerButtonsRow">
+        <button class="timer-btn" data-min="1">1 min</button>
+        <button class="timer-btn" data-min="5">5 min</button>
+        <button class="timer-btn" data-min="10">10 min</button>
+        <button class="timer-btn" data-min="15">15 min</button>
+        <button class="timer-btn" data-min="20">20 min</button>
+        <button class="timer-btn" data-min="30">30 min</button>
+      </div>
 
-  <div style="margin-top:10px;">
-    <button id="customTimerBtn" class="timer-btn custom">Custom</button>
-  </div>
+      <div style="margin-top:10px;">
+        <button id="customTimerBtn" class="timer-btn custom">Custom</button>
+      </div>
+    </div>
 
-<input id="rId" type="hidden" />
-    </div> <!-- end modal-body -->
-  </div>   <!-- end modal -->
+  </div> <!-- end modal-body -->
+</div>   <!-- end modal -->
+
+<script>
+function attachSaveHandler() {
+  const btn = document.getElementById("saveBtn");
+  btn.onclick = () => {
+    console.log("SAVE CLICK FIRED");
+    saveRecipe(currentRecipe);
+    closeModal();
+  };
+}
+
+// Add Direction
+document.getElementById("btnAddDirection").onclick = () => {
+  const dirs = document.getElementById("dirs");
+  const div = document.createElement("div");
+  div.className = "dir-item";
+  div.innerHTML = `<textarea placeholder="Direction"></textarea>`;
+  dirs.appendChild(div);
+};
+
+// Add Note
+document.getElementById("btnAddNote").onclick = () => {
+  const notes = document.getElementById("notes");
+  const div = document.createElement("div");
+  div.className = "note-item";
+  div.innerHTML = `<textarea placeholder="Note"></textarea>`;
+  notes.appendChild(div);
+};
+</script>
 
 <div id="timerOverlay">
   <div id="timerOverlayContent">
@@ -613,6 +635,23 @@ function saveRecipe(recipe) {
 
   // Remove old version if exists
   recipes = recipes.filter(r => r.id !== recipe.id);
+  
+  // Read modal fields
+recipe.name = document.getElementById("rName").value;
+recipe.category = document.getElementById("rCategorySelect").value;
+
+// Collect directions
+recipe.directions = [];
+document.querySelectorAll("#dirs .dir-item").forEach(dir => {
+  recipe.directions.push(dir.querySelector("textarea").value);
+});
+
+// Collect notes
+recipe.notes = [];
+document.querySelectorAll("#notes .note-item").forEach(note => {
+  recipe.notes.push(note.querySelector("textarea").value);
+});
+
 
   // Add updated recipe
   recipes.push(recipe);
