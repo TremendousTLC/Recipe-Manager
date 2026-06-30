@@ -1285,13 +1285,19 @@ function loadRecipeFromServer(recipeId){
   fetch("https://TremendousTLC.github.io/recipe-manager/recipes.json")
     .then(res => res.json())
     .then(data => {
-      const recipe = data.recipes.find(r => r.id == recipeId);
-      if (!recipe){
+      // Store the actual recipe so you can edit and export it
+      currentRecipe = data.recipes.find(r => r.id == recipeId);
+
+      if (!currentRecipe){
         showToast("Recipe not found");
         return;
       }
 
-      recipe.ingredients.forEach(ing => {
+      // Clear your list before loading new ingredients (optional)
+      // list = [];
+
+      // Add each ingredient to your UI
+      currentRecipe.ingredients.forEach(ing => {
         const qty = ing.qty || "";
         const unit = ing.unit || "";
         const fullQty = (qty + " " + unit).trim();
@@ -1299,7 +1305,7 @@ function loadRecipeFromServer(recipeId){
         addItemToList(ing.name, fullQty);
       });
 
-      showToast("Ingredients added from recipe");
+      showToast("Ingredients loaded from recipe");
     })
     .catch(err => {
       console.error("Error loading recipe:", err);
@@ -1307,6 +1313,89 @@ function loadRecipeFromServer(recipeId){
     });
 }
 
+
 </script>
+
+<ul id="recipeItems"></ul>
+
+<script>
+function saveModel() {
+  localStorage.setItem("recipes", JSON.stringify(recipes));
+}
+
+function renderRecipeItems(recipe) {
+  const container = document.getElementById("recipeItems");
+  container.innerHTML = "";
+
+  recipe.items.forEach(item => {
+    const li = document.createElement("li");
+    li.className = "recipe-item";
+
+    // Checkbox
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.checked = !!item.checked;
+    chk.addEventListener("change", () => {
+      item.checked = chk.checked;
+      saveModel();
+    });
+    li.appendChild(chk);
+
+    // NAME INPUT — THIS is the part you were missing
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = item.name || "";
+    nameInput.className = "recipe-name-input";
+
+    nameInput.addEventListener("change", () => {
+      item.name = nameInput.value;   // <-- THIS makes rename save
+      saveModel();
+    });
+
+    li.appendChild(nameInput);
+
+    // Quantity
+    const qtyInput = document.createElement("input");
+    qtyInput.type = "text";
+    qtyInput.value = item.qty || "";
+    qtyInput.className = "recipe-qty-input";
+    qtyInput.addEventListener("change", () => {
+      item.qty = qtyInput.value;
+      saveModel();
+    });
+    li.appendChild(qtyInput);
+
+    // Unit
+    const unitInput = document.createElement("input");
+    unitInput.type = "text";
+    unitInput.value = item.unit || "";
+    unitInput.className = "recipe-unit-input";
+    unitInput.addEventListener("change", () => {
+      item.unit = unitInput.value;
+      saveModel();
+    });
+    li.appendChild(unitInput);
+
+    // Prep
+    const prepInput = document.createElement("input");
+    prepInput.type = "text";
+    prepInput.value = item.prep || "";
+    prepInput.className = "recipe-prep-input";
+    prepInput.addEventListener("change", () => {
+      item.prep = prepInput.value;
+      saveModel();
+    });
+    li.appendChild(prepInput);
+
+    container.appendChild(li);
+  });
+}
+
+renderRecipeItems(recipes[0]);
+
+</script>
+
+
+
 </body>
 </html>
