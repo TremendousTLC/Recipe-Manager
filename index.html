@@ -587,6 +587,9 @@ function saveRecipe(recipe) {
   // Remove old version if exists
   recipes = recipes.filter(r => r.id !== recipe.id);
 
+  // ⭐ Save the edited items (NOT ingredients)
+  recipe.ingredients = recipe.items;
+
   // Add updated recipe
   recipes.push(recipe);
 
@@ -595,14 +598,12 @@ function saveRecipe(recipe) {
 
   console.log("Saved recipe:", recipe);
 
-  // ⭐ NEW: Give feedback
   showToast("Recipe saved");
 
-  // ⭐ NEW: Exit recipe editor
+  // ⭐ Close the editor
   document.getElementById("recipeEditor").style.display = "none";
   document.getElementById("recipeList").style.display = "block";
 }
-
 
 /* Color helper and normalization */
 const DEFAULT_COLORS = ['#0b74de','#e07a5f','#2a9d8f','#9b5de5','#f2c94c','#f48fb1','#6c757d'];
