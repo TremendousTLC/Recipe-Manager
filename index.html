@@ -979,21 +979,27 @@ function addGroup(name = "") {
 
 
 /* Editor helpers */
-function addIngRow(data){
+function addIngRow(data = {}, container = null){
   const row = document.createElement('div');
   row.className = 'ing-row';
 
   row.innerHTML = `
-	<input type="checkbox" class="ingredient-check">
-    <input class="ing-qty"  placeholder="Qty"  value="${escapeHtml((data && data.qty)  || '')}">
-    <input class="ing-unit" placeholder="Unit" value="${escapeHtml((data && data.unit) || '')}">
-    <input class="ing-name" placeholder="Name" value="${escapeHtml((data && data.name) || '')}">
-    <input class="ing-prep" placeholder="Prep" value="${escapeHtml((data && data.prep) || '')}">
+    <input type="checkbox" class="ingredient-check">
+    <input class="ing-qty"  placeholder="Qty"  value="${escapeHtml(data.qty || '')}">
+    <input class="ing-unit" placeholder="Unit" value="${escapeHtml(data.unit || '')}">
+    <input class="ing-name" placeholder="Name" value="${escapeHtml(data.name || '')}">
+    <input class="ing-prep" placeholder="Prep" value="${escapeHtml(data.prep || '')}">
     <button class="rm rbtn">−</button>
   `;
 
   row.querySelector('.rm').addEventListener('click', ()=>row.remove());
-  ings.appendChild(row);
+
+  // ⭐ THIS IS THE FIX ⭐
+  if (container) {
+    container.appendChild(row);
+  } else {
+    ings.appendChild(row);
+  }
 }
 
 function addDirRow(text){
