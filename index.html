@@ -641,17 +641,10 @@ recipe.name = document.getElementById("rName").value;
 recipe.category = document.getElementById("rCategorySelect").value;
 
 // Collect directions
-recipe.directions = [];
-document.querySelectorAll("#dirs .dir-item").forEach(dir => {
-  recipe.directions.push(dir.querySelector("textarea").value);
-});
+recipe.directions = collectDirectionsFromEditor();
 
 // Collect notes
-recipe.notes = [];
-document.querySelectorAll("#notes .note-item").forEach(note => {
-  recipe.notes.push(note.querySelector("textarea").value);
-});
-
+recipe.notes = collectNotesFromEditor();
 
   // Add updated recipe
   recipes.push(recipe);
@@ -1153,6 +1146,7 @@ addNote.addEventListener('click', () => addNoteRow());
 cancelBtn.addEventListener('click', closeModal);
 modalMask.addEventListener('click', closeModal);
 
+/* ingredients collector */
 function collectIngredientsFromEditor() {
   const groups = [];
 
@@ -1171,15 +1165,31 @@ function collectIngredientsFromEditor() {
       }
     });
 
-    groups.push({
-      group: groupName,
-      items: items
-    });
+    groups.push({ group: groupName, items });
   });
 
   return groups;
 }
 
+/* directions collector */
+function collectDirectionsFromEditor() {
+  const dirs = [];
+  document.querySelectorAll(".dir-text").forEach(t => {
+    const val = t.value.trim();
+    if (val.length > 0) dirs.push(val);
+  });
+  return dirs;
+}
+
+/* notes collector */
+function collectNotesFromEditor() {
+  const notes = [];
+  document.querySelectorAll(".note-text").forEach(t => {
+    const val = t.value.trim();
+    if (val.length > 0) notes.push(val);
+  });
+  return notes;
+}
 
 /* Import/Export JSON wiring */
 (function wireImportExport(){
