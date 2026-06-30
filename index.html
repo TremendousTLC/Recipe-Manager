@@ -589,6 +589,10 @@ function collectIngredients() {
 }
 
 function saveRecipe(recipe) {
+
+  // Collect ingredients from editor
+  recipe.ingredients = collectIngredientsFromEditor();
+
   // Ensure recipe has an ID
   if (!recipe.id) {
     recipe.id = "r_" + Math.random().toString(36).slice(2,10);
@@ -600,9 +604,6 @@ function saveRecipe(recipe) {
   // Remove old version if exists
   recipes = recipes.filter(r => r.id !== recipe.id);
 
-  // ⭐ Save the edited items (NOT ingredients)
-  recipe.ingredients = recipe.items;
-
   // Add updated recipe
   recipes.push(recipe);
 
@@ -611,11 +612,13 @@ function saveRecipe(recipe) {
 
   console.log("Saved recipe:", recipe);
 
-  showToast("Recipe saved");
+  // Toast (simple)
+  alert("Recipe saved");
 
-  // ⭐ Close the editor
-  document.getElementById("recipeEditor").style.display = "none";
-  document.getElementById("recipeList").style.display = "block";
+  // Close modal (correct for your app)
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  modalMask.style.display='none';
 }
 
 /* Color helper and normalization */
