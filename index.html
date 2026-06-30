@@ -1330,6 +1330,21 @@ function loadRecipeFromServer(recipeId){
     });
 }
 
+setTimeout(() => {
+  const btn = document.getElementById("saveBtn");
+  if (!btn) {
+    console.log("Save button not found yet");
+    return;
+  }
+
+  btn.onclick = () => {
+    console.log("SAVE CLICK FIRED (clean reset)");
+    saveRecipe(currentRecipe);
+  };
+
+  console.log("Save button handler attached (clean reset)");
+}, 500);
+
 
 </script>
 
