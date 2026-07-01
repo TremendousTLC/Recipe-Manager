@@ -718,10 +718,12 @@ const addIng = document.getElementById('btnAddIngredient');
 const addDir = document.getElementById('btnAddDirection');
 const addNote = document.getElementById('btnAddNote');
 
-const addGroupBtn = document.getElementById("btnAddGroup");
-
-addGroupBtn.onclick = () => {
-  addGroup("");   // creates a new empty ingredient group
+document.addEventListener("DOMContentLoaded", () => {
+  const addGroupBtn = document.getElementById("btnAddGroup");
+  if (addGroupBtn) {
+    addGroupBtn.onclick = () => addGroup("");
+  }
+});
 };
 
 
