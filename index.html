@@ -500,13 +500,10 @@ width: 115px;          /* or whatever you want */
     <div>
       <label class="muted-note">Ingredients</label>
       <div id="ings"></div>
-
-      <button id="btnAddIngredient" class="btn add-btn">Add Ingredient</button>
+	  <button id="btnAddGroup" class="btn">Add Ingredient Group</button>
       <button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
       <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
-
-<button id="btnAddGroup" class="btn">Add Ingredient Group</button>
 
     <!-- Directions -->
     <div>
@@ -974,17 +971,26 @@ function addGroup(name = "") {
   const items = document.createElement("div");
   items.className = "group-items";
 
+  // ⭐ ADD INGREDIENT BUTTON INSIDE GROUP
+  const addRowBtn = document.createElement("button");
+  addRowBtn.className = "btn add-btn";
+  addRowBtn.textContent = "Add Ingredient";
+
+  addRowBtn.onclick = () => {
+    addIngRow({}, items);   // <-- adds to THIS group
+  };
+
   group.appendChild(header);
   group.appendChild(items);
+  group.appendChild(addRowBtn);
 
-  // delete group
   del.onclick = () => group.remove();
 
-  // insert into ingredients section
   ings.appendChild(group);
 
   return group;
 }
+
 
 
 /* Editor helpers */
