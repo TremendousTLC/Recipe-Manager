@@ -506,6 +506,8 @@ width: 115px;          /* or whatever you want */
       <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
 
+<button id="btnAddGroup" class="btn">Add Ingredient Group</button>
+
     <!-- Directions -->
     <div>
       <label class="muted-note">Directions</label>
@@ -718,6 +720,13 @@ const notes = document.getElementById('notes');
 const addIng = document.getElementById('btnAddIngredient');
 const addDir = document.getElementById('btnAddDirection');
 const addNote = document.getElementById('btnAddNote');
+
+const addGroupBtn = document.getElementById("btnAddGroup");
+
+addGroupBtn.onclick = () => {
+  addGroup("");   // creates a new empty ingredient group
+};
+
 
 /* Load data and normalize */
 let recipes = read(KEY_RECIPES, []);
