@@ -951,9 +951,11 @@ footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
 }
 
 function addGroup(name = "") {
+  // Create group wrapper
   const group = document.createElement("div");
   group.className = "ing-group";
 
+  // Header (title + delete button)
   const header = document.createElement("div");
   header.className = "group-header";
 
@@ -966,34 +968,34 @@ function addGroup(name = "") {
   const del = document.createElement("button");
   del.className = "btn danger";
   del.textContent = "Delete Group";
+  del.addEventListener("click", () => group.remove());
 
   header.appendChild(title);
   header.appendChild(del);
 
+  // Ingredient rows container
   const items = document.createElement("div");
   items.className = "group-items";
 
-  // ⭐ ADD INGREDIENT BUTTON INSIDE GROUP
+  // ⭐ Add Ingredient button INSIDE this group
   const addRowBtn = document.createElement("button");
   addRowBtn.className = "btn add-btn";
   addRowBtn.textContent = "Add Ingredient";
 
-  addRowBtn.onclick = () => {
-    addIngRow({}, items);   // <-- adds to THIS group
-  };
+  addRowBtn.addEventListener("click", () => {
+    addIngRow({}, items);   // <-- adds to THIS group only
+  });
 
+  // Build group
   group.appendChild(header);
   group.appendChild(items);
   group.appendChild(addRowBtn);
 
-  del.onclick = () => group.remove();
-
+  // Add to main ingredients section
   ings.appendChild(group);
 
   return group;
 }
-
-
 
 /* Editor helpers */
 function addIngRow(data = {}, container = null){
@@ -1160,12 +1162,6 @@ addCategory.addEventListener('click', ()=>{
   } else {
     alert(`Category "${n}" already exists.`);
   }
-});
-
-/* Add ingredient/direction */
-addIng.addEventListener('click', () => {
-  const lastGroup = document.querySelector(".ing-group:last-of-type .group-items");
-  addIngRow({}, lastGroup);
 });
 
 addDir.addEventListener('click', ()=> addDirRow());
