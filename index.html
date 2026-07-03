@@ -450,6 +450,27 @@ width: 115px;          /* or whatever you want */
   z-index: 9999;
 }
 
+#modalMask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9998;
+  display: none;
+}
+
+#modal {
+  position: fixed;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(600px, 90vw);
+  background: #222;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+
 </style>
 </head>
 <body>
@@ -457,22 +478,16 @@ width: 115px;          /* or whatever you want */
     <h1 class="rm-title">Recipe Manager</h1>
     <div class="muted">Grouped by category. Edit category to change name and color. Use the dropdown in the recipe editor to pick a category.</div>
 
-    <div class="toolbar" id="toolbar">
-      <button id="addNew" class="btn primary">Add New Recipe</button>
-      <button id="addCategory" class="btn">Add Category</button>
-    </div>
+<div class="toolbar" id="toolbar">
+  <button id="addNew" class="btn primary">Add New Recipe</button>
+  <button id="addCategory" class="btn">Add Category</button>
+  <button id="captureRecipeBtn" class="btn">Capture a New Recipe</button>
+</div>
 
-	<div id="importExportRow" class="toolbar-row center-row">
-	  <button id="importBtn" class="btn secondary">Import Recipes</button>
-	  <button id="exportBtn" class="btn secondary">Export Recipes</button>
-	</div>
-
-
-    <div id="listRoot"></div>
-  </div>
-  
-	<!-- Capture Recipe button -->
-  <button onclick="window.location.href='capture.html'">Capture a New Recipe</button>
+<div id="jsonRow" class="toolbar-row center-row">
+  <button id="importJsonBtn" class="btn secondary">Import JSON</button>
+  <button id="exportJsonBtn" class="btn secondary">Export JSON</button>
+</div>
 
 <!-- Modal editor -->
 <div id="modalMask"></div>
@@ -1119,6 +1134,8 @@ function openEditorFor(rec){
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
   modalMask.style.display='block';
+  modal.style.display = 'block';
+
   
   document.getElementById("saveBtn").onclick = () => {
   saveRecipe(currentRecipe);
@@ -1141,7 +1158,12 @@ function openEditorFor(rec){
 }
 
 /* Close modal */
-function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modalMask.style.display='none'; }
+function closeModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+  modalMask.style.display='none';
+  modal.style.display='none';
+}
 
 /* Add new recipe */
 addNew.addEventListener('click', ()=> {
