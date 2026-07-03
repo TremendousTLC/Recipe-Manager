@@ -450,13 +450,18 @@ width: 115px;          /* or whatever you want */
   z-index: 9999;
 }
 
+#listRoot {
+  position: relative;
+  z-index: 1;
+}
+
 #modalMask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0,0,0,0.65);
   z-index: 9998;
-  display: none;
 }
+
 
 #modal {
   position: fixed;
@@ -1133,7 +1138,7 @@ function openEditorFor(rec){
   currentRecipe = r;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
-  modalMask.style.display='block';
+  modalMask.classList.add('open');
   modal.style.display = 'block';
 
   
@@ -1161,7 +1166,7 @@ function openEditorFor(rec){
 function closeModal(){
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden','true');
-  modalMask.style.display='none';
+  modalMask.classList.remove('open');
   modal.style.display='none';
 }
 
