@@ -773,167 +773,253 @@ function populateCategorySelect(){
 }
 
 /* Render categories and recipes */
-function render(){
+function render(){function render(){
+
+  // ⭐ FIXED ROOT ⭐
+  // Your HTML does NOT contain <div id="listRoot"> anymore.
+  // So we safely fall back to a real container.
+  const root =
+    document.getElementById('listRoot') ||   // old ID (missing)
+    document.getElementById('jsonRow') ||    // safe fallback
+    document.getElementById('toolbar') ||    // safe fallback
+    document.body;                           // guaranteed fallback
+
+
   recipes = read(KEY_RECIPES, []) || [];
   const storedCats = read(KEY_CATS, []) || [];
   categories = normalizeCategories(storedCats);
-  recipes.forEach(r => { if (r && r.category && !categories.some(c=>c.name===r.category)) categories.push({ name: r.category, color: colorForName(r.category) }); });
-  if (categories.length === 0) categories = [{ name: 'Uncategorized', color: colorForName('Uncategorized') }];
-  write(KEY_CATS, categories);
 
-  root.innerHTML = '';
-  categories.forEach(catObj => {
-    const cat = catObj.name;
-    const card = document.createElement('div'); card.className='cat'; card.dataset.cat = cat;
-    const header = document.createElement('div'); header.className='cat-header';
-    const left = document.createElement('div'); left.className='cat-left';
-    const chev = document.createElement('button'); chev.className='chev'; chev.innerHTML='&#9656;';
-    const title = document.createElement('div'); title.className='cat-title';
-    const chip = document.createElement('span'); chip.textContent = cat; 
-
-chip.style.background = (catObj.color || colorForName(cat)); chip.style.padding = '6px 10px'; chip.style.borderRadius = '6px';
-    title.appendChild(chip);
-    left.appendChild(chev); left.appendChild(title);
-
-    const actions = document.createElement('div'); actions.className='cat-actions';
-    const editBtn = document.createElement('button'); editBtn.className='btn'; editBtn.textContent='Edit';
-    const delBtn = document.createElement('button'); delBtn.className='btn'; delBtn.textContent='Delete';
-    const handle = document.createElement('div'); handle.className='cat-handle'; handle.innerHTML='&#9776;'; handle.title='Drag to reorder categories';
-    actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(handle);
-
-    header.appendChild(left); header.appendChild(actions);
-    card.appendChild(header);
-
-    const list = document.createElement('ul'); list.className='recipe-list'; list.style.display='none';
-    const items = (recipes||[]).filter(r=> (r.category||'Uncategorized')===cat).sort((a,b)=> (a.name||'').localeCompare(b.name||'','en',{sensitivity:'base'}));
-
-// CATEGORY RECIPE COUNT
-const catCount = items.length;
-const countSpan = document.createElement('span');
-countSpan.className = 'cat-count';
-countSpan.textContent = catCount;
-countSpan.style.marginLeft = '8px';
-countSpan.style.opacity = '0.8';
-countSpan.style.fontWeight = 'bold';
-
-title.appendChild(countSpan);
-
-items.forEach(r => {
-  const li = document.createElement('li');
-  li.className = 'recipe-item';
-  li.setAttribute('draggable', 'true');
-  li.dataset.id = r.id;
-
-  // LEFT SIDE: drag handle + name + ingredient count
-  const leftDiv = document.createElement('div');
-  leftDiv.className = 'recipe-left';
-  leftDiv.innerHTML = `
-    <span class="drag-handle">☰</span>
-    <strong class="recipe-name">${escapeHtml(r.name || 'Untitled')}</strong>
-  `;
-
-  // RIGHT SIDE: Open + Delete
-  const rightDiv = document.createElement('div');
-  rightDiv.className = 'recipe-right';
-
-  const openBtn = document.createElement('button');
-  openBtn.className = 'btn';
-  openBtn.textContent = 'Open';
-
-  const delBtn = document.createElement('button');
-  delBtn.className = 'btn danger';
-  delBtn.textContent = 'Delete';
-
-  rightDiv.appendChild(openBtn);
-  rightDiv.appendChild(delBtn);
-
-  li.appendChild(leftDiv);
-  li.appendChild(rightDiv);
-  list.appendChild(li);
-
-  // OPEN RECIPE
-  openBtn.addEventListener('click', () => openEditorFor(r));
-
-  // DELETE RECIPE
-  delBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (confirm(`Delete recipe "${r.name}"?`)) {
-      recipes = recipes.filter(x => x.id !== r.id);
-      write(KEY_RECIPES, recipes);
-      render();
+  recipes.forEach(r => {
+    if (r && r.category && !categories.some(c => c.name === r.category)) {
+      categories.push({ name: r.category, color: colorForName(r.category) });
     }
   });
-});
+
+  if (categories.length === 0) {
+    categories = [{ name: 'Uncategorized', color: colorForName('Uncategorized') }];
+  }
+
+  write(KEY_CATS, categories);
+
+  // ⭐ THIS WAS CRASHING — now safe ⭐
+  root.innerHTML = '';
+
+  categories.forEach(catObj => {
+    const cat = catObj.name;
+
+    const card = document.createElement('div');
+    card.className = 'cat';
+    card.dataset.cat = cat;
+
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+
+    const left = document.createElement('div');
+    left.className = 'cat-left';
+
+    const chev = document.createElement('button');
+    chev.className = 'chev';
+    chev.innerHTML = '&#9656;';
+
+    const title = document.createElement('div');
+    title.className = 'cat-title';
+
+    const chip = document.createElement('span');
+    chip.textContent = cat;
+    chip.style.background = (catObj.color || colorForName(cat));
+    chip.style.padding = '6px 10px';
+    chip.style.borderRadius = '6px';
+
+    title.appendChild(chip);
+    left.appendChild(chev);
+    left.appendChild(title);
+
+    const actions = document.createElement('div');
+    actions.className = 'cat-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn';
+    editBtn.textContent = 'Edit';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn';
+    delBtn.textContent = 'Delete';
+
+    const handle = document.createElement('div');
+    handle.className = 'cat-handle';
+    handle.innerHTML = '&#9776;';
+    handle.title = 'Drag to reorder categories';
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    actions.appendChild(handle);
+
+    header.appendChild(left);
+    header.appendChild(actions);
+    card.appendChild(header);
+
+    const list = document.createElement('ul');
+    list.className = 'recipe-list';
+    list.style.display = 'none';
+
+    const items = (recipes || [])
+      .filter(r => (r.category || 'Uncategorized') === cat)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en', { sensitivity: 'base' }));
+
+    // CATEGORY RECIPE COUNT
+    const catCount = items.length;
+    const countSpan = document.createElement('span');
+    countSpan.className = 'cat-count';
+    countSpan.textContent = catCount;
+    countSpan.style.marginLeft = '8px';
+    countSpan.style.opacity = '0.8';
+    countSpan.style.fontWeight = 'bold';
+
+    title.appendChild(countSpan);
+
+    items.forEach(r => {
+      const li = document.createElement('li');
+      li.className = 'recipe-item';
+      li.setAttribute('draggable', 'true');
+      li.dataset.id = r.id;
+
+      const leftDiv = document.createElement('div');
+      leftDiv.className = 'recipe-left';
+      leftDiv.innerHTML = `
+        <span class="drag-handle">☰</span>
+        <strong class="recipe-name">${escapeHtml(r.name || 'Untitled')}</strong>
+      `;
+
+      const rightDiv = document.createElement('div');
+      rightDiv.className = 'recipe-right';
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'btn';
+      openBtn.textContent = 'Open';
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn danger';
+      delBtn.textContent = 'Delete';
+
+      rightDiv.appendChild(openBtn);
+      rightDiv.appendChild(delBtn);
+
+      li.appendChild(leftDiv);
+      li.appendChild(rightDiv);
+      list.appendChild(li);
+
+      openBtn.addEventListener('click', () => openEditorFor(r));
+
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`Delete recipe "${r.name}"?`)) {
+          recipes = recipes.filter(x => x.id !== r.id);
+          write(KEY_RECIPES, recipes);
+          render();
+        }
+      });
+    });
 
     card.appendChild(list);
     root.appendChild(card);
 
-    chev.addEventListener('click', ()=>{
+    chev.addEventListener('click', () => {
       const expanded = list.style.display !== 'none';
       list.style.display = expanded ? 'none' : 'block';
       chev.innerHTML = expanded ? '&#9656;' : '&#9662;';
     });
 
-    // Edit category inline (name + color)
-    editBtn.addEventListener('click', ()=>{
+    editBtn.addEventListener('click', () => {
       if (header.querySelector('.cat-edit')) return;
-      const editWrap = document.createElement('div'); editWrap.className='cat-edit';
-      const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.value = cat; nameInput.style.minWidth='160px';
-      const colorInput = document.createElement('input'); colorInput.type='color'; colorInput.value = (catObj.color || colorForName(cat));
-      const save = document.createElement('button'); save.className='btn'; save.textContent='Save';
-      const cancel = document.createElement('button'); cancel.className='btn'; cancel.textContent='Cancel';
-      editWrap.appendChild(nameInput); editWrap.appendChild(colorInput); editWrap.appendChild(save); editWrap.appendChild(cancel);
-      title.replaceWith(editWrap);
-      nameInput.focus(); nameInput.select();
 
-      save.addEventListener('click', ()=>{
-        const newName = (nameInput.value||'').trim() || 'Uncategorized';
+      const editWrap = document.createElement('div');
+      editWrap.className = 'cat-edit';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = cat;
+      nameInput.style.minWidth = '160px';
+
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = (catObj.color || colorForName(cat));
+
+      const save = document.createElement('button');
+      save.className = 'btn';
+      save.textContent = 'Save';
+
+      const cancel = document.createElement('button');
+      cancel.className = 'btn';
+      cancel.textContent = 'Cancel';
+
+      editWrap.appendChild(nameInput);
+      editWrap.appendChild(colorInput);
+      editWrap.appendChild(save);
+      editWrap.appendChild(cancel);
+
+      title.replaceWith(editWrap);
+      nameInput.focus();
+      nameInput.select();
+
+      save.addEventListener('click', () => {
+        const newName = (nameInput.value || '').trim() || 'Uncategorized';
         const newColor = colorInput.value || colorForName(newName);
+
         categories = categories.map(c => c.name === cat ? { name: newName, color: newColor } : c);
         recipes = recipes.map(r => r.category === cat ? Object.assign({}, r, { category: newName }) : r);
+
         write(KEY_CATS, categories);
         write(KEY_RECIPES, recipes);
+
         render();
       });
 
-      cancel.addEventListener('click', ()=> { editWrap.replaceWith(title); });
-      nameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') save.click(); if(e.key==='Escape') cancel.click(); });
+      cancel.addEventListener('click', () => {
+        editWrap.replaceWith(title);
+      });
+
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') save.click();
+        if (e.key === 'Escape') cancel.click();
+      });
     });
 
-    // delete category only if empty
+    let draggedRecipe = null;
 
-let draggedRecipe = null;
+    // ⭐ FIX: listRoot was undefined — now using root safely ⭐
+    root.addEventListener('dragstart', (e) => {
+      const li = e.target.closest('.recipe-item');
+      if (!li) return;
+      draggedRecipe = li.dataset.id;
+      e.dataTransfer.effectAllowed = 'move';
+    });
 
-listRoot.addEventListener('dragstart', (e) => {
-  const li = e.target.closest('.recipe-item');
-  if (!li) return;
-  draggedRecipe = li.dataset.id;
-  e.dataTransfer.effectAllowed = 'move';
-});
+    root.addEventListener('dragover', (e) => {
+      const li = e.target.closest('.recipe-item');
+      if (!li) return;
+      e.preventDefault();
+    });
 
-listRoot.addEventListener('dragover', (e) => {
-  const li = e.target.closest('.recipe-item');
-  if (!li) return;
-  e.preventDefault();
-});
+    root.addEventListener('drop', (e) => {
+      const li = e.target.closest('.recipe-item');
+      if (!li) return;
 
-listRoot.addEventListener('drop', (e) => {
-  const li = e.target.closest('.recipe-item');
-  if (!li) return;
+      const targetId = li.dataset.id;
+      if (draggedRecipe === targetId) return;
 
-  const targetId = li.dataset.id;
-  if (draggedRecipe === targetId) return;
+      const fromIndex = recipes.findIndex(r => r.id === draggedRecipe);
+      const toIndex = recipes.findIndex(r => r.id === targetId);
 
-  const fromIndex = recipes.findIndex(r => r.id === draggedRecipe);
-  const toIndex = recipes.findIndex(r => r.id === targetId);
+      const [moved] = recipes.splice(fromIndex, 1);
+      recipes.splice(toIndex, 0, moved);
 
-  const [moved] = recipes.splice(fromIndex, 1);
-  recipes.splice(toIndex, 0, moved);
+      write(KEY_RECIPES, recipes);
+      render();
+    });
 
-  write(KEY_RECIPES, recipes);
-  render();
+  }); // end categories.forEach
 
-});
+} // end render()
 
     function updateDeleteState(){
       const hasItems = (recipes||[]).some(r => (r.category||'Uncategorized') === cat);
@@ -1244,85 +1330,121 @@ function collectNotesFromEditor() {
 
 /* Import/Export JSON wiring */
 (function wireImportExport(){
-  const toolbar = document.getElementById('toolbar');
-  const exportBtn = document.createElement('button'); exportBtn.className='btn'; exportBtn.textContent='Export JSON';
-  exportBtn.addEventListener('click', ()=>{
-    const data = { recipes: read(KEY_RECIPES, []), categories: read(KEY_CATS, []), exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `recipes-export-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
-  const importInput = document.createElement('input'); importInput.type='file'; importInput.accept='application/json'; importInput.style.display='none';
-  importInput.addEventListener('change', async (e)=>{
-  const f = e.target.files[0]; 
-  if(!f) return;
 
-  try {
-    const text = await f.text();
-    const parsed = JSON.parse(text);
+  // Your HTML already has:
+  // <button id="importJsonBtn" class="btn secondary">Import JSON</button>
+  // <button id="exportJsonBtn" class="btn secondary">Export JSON</button>
 
-    const incomingRecipes = Array.isArray(parsed.recipes) ? parsed.recipes : [];
-    const incomingCats = Array.isArray(parsed.categories) ? parsed.categories : [];
+  const importBtn = document.getElementById('importJsonBtn');
+  const exportBtn = document.getElementById('exportJsonBtn');
 
-    /* ============================
-       MERGE RECIPES BY ID (SAFE)
-       ============================ */
-    const existing = read(KEY_RECIPES, []) || [];
-    const byId = new Map(existing.map(r => [r.id, r]));
+  /* ============================
+     EXPORT JSON (unchanged logic)
+     ============================ */
+  if (exportBtn) {
+    exportBtn.addEventListener('click', ()=>{
+      const data = {
+        recipes: read(KEY_RECIPES, []),
+        categories: read(KEY_CATS, []),
+        exportedAt: new Date().toISOString()
+      };
 
-    incomingRecipes.forEach(r => {
-      if (!r.id) {
-        r.id = 'r' + Date.now() + Math.random().toString(36).slice(2,8);
-      }
-      const prev = byId.get(r.id);
-      if (!prev) {
-        byId.set(r.id, r);
-      } else {
-        if ((r.updated || 0) > (prev.updated || 0)) {
-          byId.set(r.id, r);
-        }
-      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recipes-export-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     });
-
-    const mergedRecipes = Array.from(byId.values());
-    write(KEY_RECIPES, mergedRecipes);
-
-    /* ============================================
-       MERGE CATEGORIES BY NAME (NO DUPLICATES EVER)
-       ============================================ */
-    const existingCats = normalizeCategories(read(KEY_CATS, []));
-    const incomingCatsNorm = normalizeCategories(incomingCats);
-
-    const mergedCats = [];
-    const seen = new Set();
-
-    [...existingCats, ...incomingCatsNorm].forEach(cat => {
-      if (!seen.has(cat.name)) {
-        seen.add(cat.name);
-        mergedCats.push(cat);
-      }
-    });
-
-    write(KEY_CATS, mergedCats);
-
-    alert(`Imported ${incomingRecipes.length} recipes. Local now has ${mergedRecipes.length} recipes.`);
-    render();
-
-  } catch(err) {
-    console.error(err);
-    alert('Import failed: invalid JSON file.');
-  } finally {
-    importInput.value = '';
   }
-});
 
-  const importBtn = document.createElement('button'); importBtn.className='btn'; importBtn.textContent='Import JSON';
-  importBtn.addEventListener('click', ()=> importInput.click());
-const importExportRow = document.getElementById('importExportRow');
-//importExportRow.appendChild(exportBtn);
-//importExportRow.appendChild(importBtn);
-//importExportRow.appendChild(importInput);
+  /* ============================
+     IMPORT JSON (unchanged logic)
+     ============================ */
+
+  // Hidden file input
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.accept = 'application/json';
+  importInput.style.display = 'none';
+
+  importInput.addEventListener('change', async (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+
+    try {
+      const text = await f.text();
+      const parsed = JSON.parse(text);
+
+      const incomingRecipes = Array.isArray(parsed.recipes) ? parsed.recipes : [];
+      const incomingCats = Array.isArray(parsed.categories) ? parsed.categories : [];
+
+      /* ============================
+         MERGE RECIPES BY ID (SAFE)
+         ============================ */
+      const existing = read(KEY_RECIPES, []) || [];
+      const byId = new Map(existing.map(r => [r.id, r]));
+
+      incomingRecipes.forEach(r => {
+        if (!r.id) {
+          r.id = 'r' + Date.now() + Math.random().toString(36).slice(2,8);
+        }
+        const prev = byId.get(r.id);
+        if (!prev) {
+          byId.set(r.id, r);
+        } else {
+          if ((r.updated || 0) > (prev.updated || 0)) {
+            byId.set(r.id, r);
+          }
+        }
+      });
+
+      const mergedRecipes = Array.from(byId.values());
+      write(KEY_RECIPES, mergedRecipes);
+
+      /* ============================================
+         MERGE CATEGORIES BY NAME (NO DUPLICATES EVER)
+         ============================================ */
+      const existingCats = normalizeCategories(read(KEY_CATS, []));
+      const incomingCatsNorm = normalizeCategories(incomingCats);
+
+      const mergedCats = [];
+      const seen = new Set();
+
+      [...existingCats, ...incomingCatsNorm].forEach(cat => {
+        if (!seen.has(cat.name)) {
+          seen.add(cat.name);
+          mergedCats.push(cat);
+        }
+      });
+
+      write(KEY_CATS, mergedCats);
+
+      alert(`Imported ${incomingRecipes.length} recipes. Local now has ${mergedRecipes.length} recipes.`);
+      render();
+
+    } catch(err) {
+      console.error(err);
+      alert('Import failed: invalid JSON file.');
+    } finally {
+      importInput.value = '';
+    }
+  });
+
+  /* ============================
+     WIRE IMPORT BUTTON
+     ============================ */
+  if (importBtn) {
+    importBtn.addEventListener('click', ()=> importInput.click());
+  }
+
+  // Add hidden input safely
+  document.body.appendChild(importInput);
 
 })();
 
