@@ -1015,24 +1015,6 @@ function render(){function render(){
 
 } // end render()
 
-    function updateDeleteState(){
-      const hasItems = (recipes||[]).some(r => (r.category||'Uncategorized') === cat);
-      if(hasItems){ delBtn.classList.add('disabled'); delBtn.title = 'Cannot delete category with recipes'; delBtn.disabled = true; }
-      else { delBtn.classList.remove('disabled'); delBtn.title = 'Delete category'; delBtn.disabled = false; }
-    }
-    updateDeleteState();
-
-    delBtn.addEventListener('click', ()=>{
-      const hasItems = (recipes||[]).some(r => (r.category||'Uncategorized') === cat);
-      if(hasItems){ alert('Cannot delete category that contains recipes. Move or delete recipes first.'); return; }
-      if(!confirm(`Delete category "${cat}"? This cannot be undone.`)) return;
-      categories = categories.filter(c => c.name !== cat);
-      write(KEY_CATS, categories);
-      render();
-    });
-  });
-  }
-
   // update category select after render
   populateCategorySelect();
   initSortableOnce();
