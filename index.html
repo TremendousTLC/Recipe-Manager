@@ -778,6 +778,11 @@ function populateCategorySelect(){
 function render(){function render(){
 
   const root = document.getElementById('listRoot');
+  if (!root) {
+  console.error("ERROR: listRoot not found in HTML");
+  return;
+  }
+
 
   recipes = read(KEY_RECIPES, []) || [];
   const storedCats = read(KEY_CATS, []) || [];
