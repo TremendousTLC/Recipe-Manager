@@ -784,13 +784,24 @@ function render() {
     return;
   }
 
-  // Load recipes & categories
+  // ⭐ Load recipes & categories
   recipes = read(KEY_RECIPES, []) || [];
-  const storedCats = read(KEY_CATS, []) || [];
-  categories = normalizeCategories(storedCats);
+  let storedCats = read(KEY_CATS, []) || [];
 
-  // ⭐ Rebuild categories if missing or empty ⭐
-  if (!categories || categories.length === 0) {
+  // ⭐ Normalize category names (trim + lowercase protection)
+  storedCats = storedCats.map(c => ({
+    ...c,
+    name: (c.name || "Uncategorized").trim()
+  }));
+
+  // ⭐ Normalize recipe category names
+  recipes = recipes.map(r => ({
+    ...r,
+    category: (r.category || "Uncategorized").trim()
+  }));
+
+  // ⭐ Rebuild categories if missing
+  if (!storedCats || storedCats.length === 0) {
     const rebuilt = [];
     const seen = new Set();
 
@@ -802,28 +813,27 @@ function render() {
       }
     });
 
-    categories = rebuilt;
-    write(KEY_CATS, categories);
+    storedCats = rebuilt;
+    write(KEY_CATS, storedCats);
   }
 
-  // Ensure categories include any recipe categories
+  // ⭐ Ensure categories include all recipe categories
   recipes.forEach(r => {
-    const cat = r.category || "Uncategorized";
-    if (!categories.some(c => c.name === cat)) {
-      categories.push({ name: cat, color: colorForName(cat) });
+    if (!storedCats.some(c => c.name === r.category)) {
+      storedCats.push({
+        name: r.category,
+        color: colorForName(r.category)
+      });
     }
   });
 
-  // If still empty, create default
-  if (categories.length === 0) {
-    categories = [{ name: "Uncategorized", color: colorForName("Uncategorized") }];
-    write(KEY_CATS, categories);
-  }
+  // ⭐ Final normalized categories
+  categories = storedCats;
 
-  // ⭐ Clear the home page ⭐
+  // ⭐ Clear home page
   root.innerHTML = "";
 
-  // ⭐ Build category cards ⭐
+  // ⭐ Build category cards
   categories.forEach(catObj => {
     const cat = catObj.name;
 
@@ -878,7 +888,7 @@ function render() {
     header.appendChild(actions);
     card.appendChild(header);
 
-    // ⭐ Recipe list inside category ⭐
+    // ⭐ Recipe list inside category
     const list = document.createElement("ul");
     list.className = "recipe-list";
     list.style.display = "none";
@@ -887,7 +897,7 @@ function render() {
       .filter(r => (r.category || "Uncategorized") === cat)
       .sort((a, b) => (a.name || "").localeCompare(b.name || "", "en", { sensitivity: "base" }));
 
-    // Category recipe count
+    // ⭐ Category recipe count
     const countSpan = document.createElement("span");
     countSpan.className = "cat-count";
     countSpan.textContent = items.length;
@@ -896,8 +906,14 @@ function render() {
     countSpan.style.fontWeight = "bold";
     title.appendChild(countSpan);
 
-    // ⭐ Build recipe items ⭐
+    // ⭐ Build recipe items
     items.forEach(r => {
+      // Skip corrupted recipes
+      if (!Array.isArray(r.ingredients)) {
+        console.warn("Skipping corrupted recipe:", r);
+        return;
+      }
+
       const li = document.createElement("li");
       li.className = "recipe-item";
       li.setAttribute("draggable", "true");
@@ -943,14 +959,14 @@ function render() {
     card.appendChild(list);
     root.appendChild(card);
 
-    // Expand/collapse
+    // ⭐ Expand/collapse
     chev.addEventListener("click", () => {
       const expanded = list.style.display !== "none";
       list.style.display = expanded ? "none" : "block";
       chev.innerHTML = expanded ? "&#9656;" : "&#9662;";
     });
 
-    // Edit category
+    // ⭐ Edit category
     editBtn.addEventListener("click", () => {
       if (header.querySelector(".cat-edit")) return;
 
@@ -1010,57 +1026,49 @@ function render() {
       });
     });
 
-    // ⭐ Drag & drop ⭐
-    let draggedRecipe = null;
+    // ⭐ Delete category (normalized + empty-only)
+    delBtn.addEventListener("click", () => {
+      const normalizedCat = cat.trim().toLowerCase();
 
-    root.addEventListener("dragstart", e => {
-      const li = e.target.closest(".recipe-item");
-      if (!li) return;
-      draggedRecipe = li.dataset.id;
-      e.dataTransfer.effectAllowed = "move";
-    });
+      const hasItems = recipes.some(r =>
+        (r.category || "Uncategorized").trim().toLowerCase() === normalizedCat
+      );
 
-    root.addEventListener("dragover", e => {
-      const li = e.target.closest(".recipe-item");
-      if (!li) return;
-      e.preventDefault();
-    });
+      if (hasItems) {
+        alert("Cannot delete category that contains recipes.");
+        return;
+      }
 
-    root.addEventListener("drop", e => {
-      const li = e.target.closest(".recipe-item");
-      if (!li) return;
+      if (!confirm(`Delete category "${cat}"? This cannot be undone.`)) return;
 
-      const targetId = li.dataset.id;
-      if (draggedRecipe === targetId) return;
+      categories = categories.filter(c =>
+        c.name.trim().toLowerCase() !== normalizedCat
+      );
 
-      const fromIndex = recipes.findIndex(r => r.id === draggedRecipe);
-      const toIndex = recipes.findIndex(r => r.id === targetId);
-
-      const [moved] = recipes.splice(fromIndex, 1);
-      recipes.splice(toIndex, 0, moved);
-
-      write(KEY_RECIPES, recipes);
+      write(KEY_CATS, categories);
       render();
     });
 
   }); // end categories.forEach
 
-  // update category select after render
+  // ⭐ Update category select after render
   populateCategorySelect();
+
+  // ⭐ Init sortable
   initSortableOnce();
 
-// ✅ TOTAL RECIPE COUNT GOES HERE
-const totalCount = recipes.length;
-let footer = document.getElementById('recipe-total-count');
-if (!footer) {
-  footer = document.createElement('div');
-  footer.id = 'recipe-total-count';
-  footer.style.marginTop = '20px';
-  footer.style.fontSize = '14px';
-  footer.style.opacity = '0.7';
-  root.appendChild(footer);
-}
-footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
+  // ⭐ TOTAL RECIPE COUNT FOOTER
+  const totalCount = recipes.length;
+  let footer = document.getElementById('recipe-total-count');
+  if (!footer) {
+    footer = document.createElement('div');
+    footer.id = 'recipe-total-count';
+    footer.style.marginTop = '20px';
+    footer.style.fontSize = '14px';
+    footer.style.opacity = '0.7';
+    root.appendChild(footer);
+  }
+  footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
 
 } // end render()
 
