@@ -1045,8 +1045,6 @@ function render() {
 
   }); // end categories.forEach
 
-} // end render()
-
   // update category select after render
   populateCategorySelect();
   initSortableOnce();
@@ -1063,6 +1061,8 @@ if (!footer) {
   root.appendChild(footer);
 }
 footer.textContent = totalCount === 1 ? '1 recipe' : `${totalCount} recipes`;
+
+} // end render()
 
 function addGroup(name = "") {
   // Create group wrapper
