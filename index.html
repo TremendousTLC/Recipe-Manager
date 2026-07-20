@@ -494,6 +494,8 @@ width: 115px;          /* or whatever you want */
   <button id="exportJsonBtn" class="btn secondary">Export JSON</button>
 </div>
 
+<div id="listRoot"></div>
+
 <!-- Modal editor -->
 <div id="modalMask"></div>
 <div id="modal" role="dialog" aria-hidden="true">
@@ -775,15 +777,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render(){function render(){
 
-  // ⭐ FIXED ROOT ⭐
-  // Your HTML does NOT contain <div id="listRoot"> anymore.
-  // So we safely fall back to a real container.
-  const root =
-    document.getElementById('listRoot') ||   // old ID (missing)
-    document.getElementById('jsonRow') ||    // safe fallback
-    document.getElementById('toolbar') ||    // safe fallback
-    document.body;                           // guaranteed fallback
-
+  const root = document.getElementById('listRoot');
 
   recipes = read(KEY_RECIPES, []) || [];
   const storedCats = read(KEY_CATS, []) || [];
