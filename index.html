@@ -913,15 +913,15 @@ console.log("RENDER VERSION 101");
     items.forEach(r => {
   
    	// ⭐ Only skip grouped recipes inside Garden Mixes
-	  if (cat === "Garden Mixes" &&
-      Array.isArray(r.ingredients) &&
-      r.ingredients.length > 0 &&
-      r.ingredients[0].items) {
-
+	  if (
+	  cat === "Garden Mixes" &&
+	  Array.isArray(r.ingredients) &&
+	  r.ingredients.length > 0 &&
+	  Array.isArray(r.ingredients[0].items)   // ⭐ REAL grouped format check
+	  ) {
 	  console.warn("Skipping grouped-format recipe in Garden Mixes:", r);
 	  return;
 	  }
-
 	  
       if (!Array.isArray(r.ingredients)) {
         console.warn("Skipping corrupted recipe:", r);
