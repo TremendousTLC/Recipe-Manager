@@ -912,12 +912,16 @@ console.log("RENDER VERSION 100");
     // ⭐ Build recipe items
     items.forEach(r => {
   
-    // ⭐ Skip grouped-format recipes (they cannot be rendered in list view)
+   	// ⭐ Only skip grouped recipes inside Garden Mixes
+	  if (cat === "Garden Mixes" &&
+      Array.isArray(r.ingredients) &&
+      r.ingredients.length > 0 &&
+      r.ingredients[0].items) {
 
-	  if (Array.isArray(r.ingredients) && r.ingredients.length > 0 && r.ingredients[0].items) {
-	  console.warn("Skipping grouped-format recipe in list view:", r);
+	  console.warn("Skipping grouped-format recipe in Garden Mixes:", r);
 	  return;
 	  }
+
 	  
       if (!Array.isArray(r.ingredients)) {
         console.warn("Skipping corrupted recipe:", r);
