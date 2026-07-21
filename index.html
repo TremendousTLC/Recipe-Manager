@@ -777,7 +777,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 102");
+console.log("RENDER VERSION 103");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -912,17 +912,22 @@ console.log("RENDER VERSION 102");
     // ⭐ Build recipe items
     items.forEach(r => {
   
-   	// ⭐ Only skip grouped recipes inside Garden Mixes
+	  // ⭐ Only skip TRUE grouped recipes inside Garden Mixes
 	  if (
 	  cat === "Garden Mixes" &&
 	  Array.isArray(r.ingredients) &&
 	  r.ingredients.length > 0 &&
-	  Array.isArray(r.ingredients[0].items)   // ⭐ REAL grouped format check
+	  typeof r.ingredients[0] === "object" &&
+	  r.ingredients[0] !== null &&
+	  "items" in r.ingredients[0] &&                 // must actually HAVE items
+	  Array.isArray(r.ingredients[0].items) &&       // items must be an array
+	  r.ingredients[0].items.length > 0 &&           // items must contain objects
+	  typeof r.ingredients[0].items[0] === "object"  // items must contain ingredient objects
 	  ) {
 	  console.warn("Skipping grouped-format recipe in Garden Mixes:", r);
 	  return;
 	  }
-	  
+
       if (!Array.isArray(r.ingredients)) {
         console.warn("Skipping corrupted recipe:", r);
         return;
