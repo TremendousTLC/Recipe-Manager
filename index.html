@@ -916,6 +916,11 @@ console.log("RENDER VERSION 99");
         console.warn("Skipping corrupted recipe:", r);
         return;
       }
+	  
+	  if (r.ingredients.some(i => typeof i === "string")) {
+      console.warn("Skipping corrupted recipe (HTML ingredients):", r);
+      return;
+      }
 
       const li = document.createElement("li");
       li.className = "recipe-item";
