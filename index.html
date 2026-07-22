@@ -786,7 +786,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 114");
+console.log("RENDER VERSION 115");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1318,9 +1318,7 @@ addDir.addEventListener('click', ()=> addDirRow());
 addNote.addEventListener('click', () => addNoteRow());
 
 cancelBtn.addEventListener('click', () => {
-    document.activeElement.blur();      // remove focus
-    modal.style.display = "none";       // hide modal
-    modal.setAttribute("aria-hidden", "true");
+    closeModal();   // ⭐ Correct way to close the modal
 });
 
 modalMask.addEventListener('click', () => {
