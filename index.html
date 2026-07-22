@@ -1673,6 +1673,17 @@ function saveModel() {
 }
 
 function renderRecipeItems(recipe) {
+
+	// ⭐ Skip grouped-format recipes entirely
+if (
+  r.category === "Garden Mixes" &&
+  Array.isArray(r.ingredients) &&
+  r.ingredients.length > 0 &&
+  Array.isArray(r.ingredients[0].items)
+) {
+  return; // do not render ingredients
+}
+	
   const container = document.getElementById("recipeItems");
   container.innerHTML = "";
 
