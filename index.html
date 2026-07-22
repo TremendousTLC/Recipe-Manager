@@ -570,19 +570,13 @@ function attachSaveHandler() {
   const btn = document.getElementById("saveBtn");
 
   btn.onclick = () => {
-    // ⭐ FIX: remove focus BEFORE closing the modal
-    document.activeElement.blur();
-
+    document.activeElement.blur();   // ⭐ FIX: remove focus FIRST
     console.log("SAVE CLICK FIRED");
 
-    // Save the recipe
-    saveRecipe(currentRecipe);
-
-    // Close modal safely (no aria-hidden violation)
-    closeModal();
+    saveRecipe(currentRecipe);       // save the recipe
+    closeModal();                    // safely close modal
   };
 }
-
 
 // Add Direction
 document.getElementById("btnAddDirection").onclick = () => {
@@ -786,7 +780,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 115");
+console.log("RENDER VERSION 116");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
