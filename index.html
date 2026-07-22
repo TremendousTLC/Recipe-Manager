@@ -664,14 +664,14 @@ function saveRecipe(recipe) {
   recipes = recipes.filter(r => r.id !== recipe.id);
   
   // Read modal fields
-recipe.name = document.getElementById("rName").value;
-recipe.category = document.getElementById("rCategorySelect").value;
+  recipe.name = document.getElementById("rName").value;
+  recipe.category = document.getElementById("rCategorySelect").value;
 
-// Collect directions
-recipe.directions = collectDirectionsFromEditor();
+  // Collect directions
+  recipe.directions = collectDirectionsFromEditor();
 
-// Collect notes
-recipe.notes = collectNotesFromEditor();
+  // Collect notes
+  recipe.notes = collectNotesFromEditor();
 
   // Add updated recipe
   recipes.push(recipe);
@@ -684,10 +684,6 @@ recipe.notes = collectNotesFromEditor();
   // Toast (simple)
   alert("Recipe saved");
 
-  // Close modal (correct for your app)
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden','true');
-  modalMask.style.display='none';
 }
 
 /* Color helper and normalization */
@@ -780,7 +776,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 117");
+console.log("RENDER VERSION 118");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
