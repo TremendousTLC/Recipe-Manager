@@ -909,8 +909,8 @@ console.log("RENDER VERSION 105");
     countSpan.style.fontWeight = "bold";
     title.appendChild(countSpan);
 
-    // ⭐ Build recipe items
-    items.forEach(r => {
+    // // ⭐ Build recipe items
+items.forEach(r => {
   
 // ⭐ Only skip TRUE grouped recipes inside Garden Mixes
 if (
@@ -927,58 +927,57 @@ if (
   return;
 }
 
+if (!Array.isArray(r.ingredients)) {
+  console.warn("Skipping corrupted recipe:", r);
+  return;
+}
 
-      if (!Array.isArray(r.ingredients)) {
-        console.warn("Skipping corrupted recipe:", r);
-        return;
-      }
-	  
-	  if (r.ingredients.some(i => typeof i === "string")) {
-      console.warn("Skipping corrupted recipe (HTML ingredients):", r);
-      return;
-      }
+if (r.ingredients.some(i => typeof i === "string")) {
+  console.warn("Skipping corrupted recipe (HTML ingredients):", r);
+  return;
+}
 
-      const li = document.createElement("li");
-      li.className = "recipe-item";
-      li.setAttribute("draggable", "true");
-      li.dataset.id = r.id;
+const li = document.createElement("li");
+li.className = "recipe-item";
+li.setAttribute("draggable", "true");
+li.dataset.id = r.id;
 
-      const leftDiv = document.createElement("div");
-      leftDiv.className = "recipe-left";
-      leftDiv.innerHTML = `
-        <span class="drag-handle">☰</span>
-        <strong class="recipe-name">${escapeHtml(r.name || "Untitled")}</strong>
-      `;
+const leftDiv = document.createElement("div");
+leftDiv.className = "recipe-left";
+leftDiv.innerHTML = `
+  <span class="drag-handle">☰</span>
+  <strong class="recipe-name">${escapeHtml(r.name || "Untitled")}</strong>
+`;
 
-      const rightDiv = document.createElement("div");
-      rightDiv.className = "recipe-right";
+const rightDiv = document.createElement("div");
+rightDiv.className = "recipe-right";
 
-      const openBtn = document.createElement("button");
-      openBtn.className = "btn";
-      openBtn.textContent = "Open";
+const openBtn = document.createElement("button");
+openBtn.className = "btn";
+openBtn.textContent = "Open";
 
-      const delBtn2 = document.createElement("button");
-      delBtn2.className = "btn danger";
-      delBtn2.textContent = "Delete";
+const delBtn2 = document.createElement("button");
+delBtn2.className = "btn danger";
+delBtn2.textContent = "Delete";
 
-      rightDiv.appendChild(openBtn);
-      rightDiv.appendChild(delBtn2);
+rightDiv.appendChild(openBtn);
+rightDiv.appendChild(delBtn2);
 
-      li.appendChild(leftDiv);
-      li.appendChild(rightDiv);
-      list.appendChild(li);
+li.appendChild(leftDiv);
+li.appendChild(rightDiv);
+list.appendChild(li);
 
-      openBtn.addEventListener("click", () => openEditorFor(r));
+openBtn.addEventListener("click", () => openEditorFor(r));
 
-      delBtn2.addEventListener("click", e => {
-        e.stopPropagation();
-        if (confirm(`Delete recipe "${r.name}"?`)) {
-          recipes = recipes.filter(x => x.id !== r.id);
-          write(KEY_RECIPES, recipes);
-          render();
-        }
-      });
-    });
+delBtn2.addEventListener("click", e => {
+  e.stopPropagation();
+  if (confirm(`Delete recipe "${r.name}"?`)) {
+    recipes = recipes.filter(x => x.id !== r.id);
+    write(KEY_RECIPES, recipes);
+    render();
+  }
+});
+});
 
     card.appendChild(list);
     root.appendChild(card);
