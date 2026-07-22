@@ -777,7 +777,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 108");
+console.log("RENDER VERSION 109");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1293,8 +1293,19 @@ addCategory.addEventListener('click', ()=>{
 
 addDir.addEventListener('click', ()=> addDirRow());
 addNote.addEventListener('click', () => addNoteRow());
-cancelBtn.addEventListener('click', closeModal);
-modalMask.addEventListener('click', closeModal);
+
+cancelBtn.addEventListener('click', () => {
+    document.activeElement.blur();      // remove focus
+    modal.style.display = "none";       // hide modal
+    modal.setAttribute("aria-hidden", "true");
+});
+
+modalMask.addEventListener('click', () => {
+    document.activeElement.blur();
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+});
+
 
 /* ingredients collector */
 function collectIngredientsFromEditor() {
