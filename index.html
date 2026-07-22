@@ -777,7 +777,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 109");
+console.log("RENDER VERSION 110");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1184,27 +1184,40 @@ function openEditorFor(rec){
   dirs.innerHTML = '';
   notes.innerHTML = '';
 
-  // Load ingredients (supports old flat format)
-  if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
-    // Detect grouped format
-    if (r.ingredients[0].items) {
-      r.ingredients.forEach(g => {
-        const groupEl = addGroup(g.group || "");
-        const container = groupEl.querySelector(".group-items");
-        g.items.forEach(item => addIngRow(item, container));
-      });
+// Load ingredients (supports grouped + flat)
+if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
+
+    const isGrouped = typeof r.ingredients[0] === "object" &&
+                      r.ingredients[0].items;
+
+    if (isGrouped) {
+        // TRUE GROUPED FORMAT
+        r.ingredients.forEach(g => {
+            const groupEl = addGroup(g.title || "");
+            const container = groupEl.querySelector(".group-items");
+
+            g.items.forEach(item => {
+                addIngRow(item, container);
+            });
+        });
+
     } else {
-      // OLD flat format → wrap into one group
-      const groupEl = addGroup("");
-      const container = groupEl.querySelector(".group-items");
-      r.ingredients.forEach(item => addIngRow(item, container));
+        // FLAT FORMAT → wrap into one group
+        const groupEl = addGroup("");
+        const container = groupEl.querySelector(".group-items");
+
+        r.ingredients.forEach(item => {
+            addIngRow(item, container);
+        });
     }
-  } else {
+
+} else {
     // No ingredients → create one empty group + row
     const groupEl = addGroup("");
     const container = groupEl.querySelector(".group-items");
     addIngRow({}, container);
-  }
+}
+
 
   // Load directions
   (r && r.directions || []).forEach(d=>addDirRow(d));
@@ -1658,86 +1671,124 @@ function saveModel() {
 }
 
 function renderRecipeItems(recipe) {
+    if (!recipe) return;
 
-if (!recipe) return;
+    const container = document.getElementById("recipeItems");
+    container.innerHTML = "";
 
-	// ⭐ Skip grouped-format recipes entirely
-if (
-  recipe.category === "Garden Mixes" &&
-  Array.isArray(recipe.ingredients) &&
-  recipe.ingredients.length > 0 &&
-  Array.isArray(recipe.ingredients[0].items)
-) {
-  return; // do not render ingredients
-}
-	
-  const container = document.getElementById("recipeItems");
-  container.innerHTML = "";
+    // ⭐ Detect grouped format
+    const isGrouped =
+        Array.isArray(recipe.ingredients) &&
+        recipe.ingredients.length > 0 &&
+        typeof recipe.ingredients[0] === "object" &&
+        recipe.ingredients[0].items;
 
-const items = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
-items.forEach(item => {
+    // ⭐ GROUPED FORMAT VIEWER
+    if (isGrouped) {
+        recipe.ingredients.forEach(group => {
+            // Group title
+            const title = document.createElement("h4");
+            title.textContent = group.title || "";
+            container.appendChild(title);
 
-    const li = document.createElement("li");
-    li.className = "recipe-item";
+            // Items inside group
+            group.items.forEach(item => {
+                const li = document.createElement("li");
+                li.className = "recipe-item";
 
-    // Checkbox
-    const chk = document.createElement("input");
-    chk.type = "checkbox";
-    chk.checked = !!item.checked;
-    chk.addEventListener("change", () => {
-      item.checked = chk.checked;
-      saveModel();
+                const chk = document.createElement("input");
+                chk.type = "checkbox";
+                chk.checked = !!item.checked;
+                chk.addEventListener("change", () => {
+                    item.checked = chk.checked;
+                    saveModel();
+                });
+                li.appendChild(chk);
+
+                const nameInput = document.createElement("input");
+                nameInput.type = "text";
+                nameInput.value = item.item || "";
+                nameInput.className = "recipe-name-input";
+                nameInput.addEventListener("change", () => {
+                    item.item = nameInput.value;
+                    saveModel();
+                });
+                li.appendChild(nameInput);
+
+                const qtyInput = document.createElement("input");
+                qtyInput.type = "text";
+                qtyInput.value = item.amount || "";
+                qtyInput.className = "recipe-qty-input";
+                qtyInput.addEventListener("change", () => {
+                    item.amount = qtyInput.value;
+                    saveModel();
+                });
+                li.appendChild(qtyInput);
+
+                container.appendChild(li);
+            });
+        });
+
+        return; // ⭐ IMPORTANT: prevents flat rendering
+    }
+
+    // ⭐ FLAT FORMAT VIEWER
+    const items = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+    items.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "recipe-item";
+
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.checked = !!item.checked;
+        chk.addEventListener("change", () => {
+            item.checked = chk.checked;
+            saveModel();
+        });
+        li.appendChild(chk);
+
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = item.name || "";
+        nameInput.className = "recipe-name-input";
+        nameInput.addEventListener("change", () => {
+            item.name = nameInput.value;
+            saveModel();
+        });
+        li.appendChild(nameInput);
+
+        const qtyInput = document.createElement("input");
+        qtyInput.type = "text";
+        qtyInput.value = item.qty || "";
+        qtyInput.className = "recipe-qty-input";
+        qtyInput.addEventListener("change", () => {
+            item.qty = qtyInput.value;
+            saveModel();
+        });
+        li.appendChild(qtyInput);
+
+        const unitInput = document.createElement("input");
+        unitInput.type = "text";
+        unitInput.value = item.unit || "";
+        unitInput.className = "recipe-unit-input";
+        unitInput.addEventListener("change", () => {
+            item.unit = unitInput.value;
+            saveModel();
+        });
+        li.appendChild(unitInput);
+
+        const prepInput = document.createElement("input");
+        prepInput.type = "text";
+        prepInput.value = item.prep || "";
+        prepInput.className = "recipe-prep-input";
+        prepInput.addEventListener("change", () => {
+            item.prep = prepInput.value;
+            saveModel();
+        });
+        li.appendChild(prepInput);
+
+        container.appendChild(li);
     });
-    li.appendChild(chk);
-
-    // NAME INPUT — THIS is the part you were missing
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = item.name || "";
-    nameInput.className = "recipe-name-input";
-
-    nameInput.addEventListener("change", () => {
-      item.name = nameInput.value;   // <-- THIS makes rename save
-      saveModel();
-    });
-
-    li.appendChild(nameInput);
-
-    // Quantity
-    const qtyInput = document.createElement("input");
-    qtyInput.type = "text";
-    qtyInput.value = item.qty || "";
-    qtyInput.className = "recipe-qty-input";
-    qtyInput.addEventListener("change", () => {
-      item.qty = qtyInput.value;
-      saveModel();
-    });
-    li.appendChild(qtyInput);
-
-    // Unit
-    const unitInput = document.createElement("input");
-    unitInput.type = "text";
-    unitInput.value = item.unit || "";
-    unitInput.className = "recipe-unit-input";
-    unitInput.addEventListener("change", () => {
-      item.unit = unitInput.value;
-      saveModel();
-    });
-    li.appendChild(unitInput);
-
-    // Prep
-    const prepInput = document.createElement("input");
-    prepInput.type = "text";
-    prepInput.value = item.prep || "";
-    prepInput.className = "recipe-prep-input";
-    prepInput.addEventListener("change", () => {
-      item.prep = prepInput.value;
-      saveModel();
-    });
-    li.appendChild(prepInput);
-
-    container.appendChild(li);
-  });
 }
 
 renderRecipeItems(recipes[0]);
