@@ -1674,6 +1674,8 @@ function saveModel() {
 
 function renderRecipeItems(recipe) {
 
+if (!r) return;
+
 	// ⭐ Skip grouped-format recipes entirely
 if (
   r.category === "Garden Mixes" &&
