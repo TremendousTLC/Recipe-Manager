@@ -568,12 +568,21 @@ width: 115px;          /* or whatever you want */
 <script>
 function attachSaveHandler() {
   const btn = document.getElementById("saveBtn");
+
   btn.onclick = () => {
+    // ⭐ FIX: remove focus BEFORE closing the modal
+    document.activeElement.blur();
+
     console.log("SAVE CLICK FIRED");
+
+    // Save the recipe
     saveRecipe(currentRecipe);
+
+    // Close modal safely (no aria-hidden violation)
     closeModal();
   };
 }
+
 
 // Add Direction
 document.getElementById("btnAddDirection").onclick = () => {
@@ -777,7 +786,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 110");
+console.log("RENDER VERSION 111");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1276,6 +1285,7 @@ if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
 
 /* Close modal */
 function closeModal(){
+  document.activeElement.blur();
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden','true');
   modalMask.classList.remove('open');
