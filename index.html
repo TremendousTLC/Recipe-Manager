@@ -786,7 +786,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 112");
+console.log("RENDER VERSION 114");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1685,6 +1685,11 @@ function renderRecipeItems(recipe) {
 
     const container = document.getElementById("recipeItems");
     container.innerHTML = "";
+
+    // ⭐ HIDE INGREDIENTS FOR ALL GARDEN MIX RECIPES
+    if (recipe.category === "Garden Mixes") {
+        return; // do not render ingredients
+    }
 
     // ⭐ Detect grouped format
     const isGrouped =
