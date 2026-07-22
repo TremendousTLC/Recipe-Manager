@@ -777,7 +777,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 106");
+console.log("RENDER VERSION 107");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -912,31 +912,6 @@ console.log("RENDER VERSION 106");
     // // ⭐ Build recipe items
 items.forEach(r => {
   
-// ⭐ Only skip TRUE grouped recipes inside Garden Mixes
-if (
-  cat === "Garden Mixes" &&
-  Array.isArray(r.ingredients) &&
-  r.ingredients.length > 0 &&
-  typeof r.ingredients[0] === "object" &&
-  r.ingredients[0] !== null &&
-  Array.isArray(r.ingredients[0].items) &&        // must be an array
-  r.ingredients[0].items.length > 0 &&            // must contain items
-  typeof r.ingredients[0].items[0] === "object"   // items must be objects
-) {
-  console.warn("Skipping grouped-format recipe in Garden Mixes:", r);
-  return;
-}
-
-if (!Array.isArray(r.ingredients)) {
-  console.warn("Skipping corrupted recipe:", r);
-  return;
-}
-
-if (r.ingredients.some(i => typeof i === "string")) {
-  console.warn("Skipping corrupted recipe (HTML ingredients):", r);
-  return;
-}
-
 const li = document.createElement("li");
 li.className = "recipe-item";
 li.setAttribute("draggable", "true");
