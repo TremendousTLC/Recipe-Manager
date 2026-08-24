@@ -100,11 +100,22 @@ h1{
   .cat-edit input[type="color"]{ width:36px; height:36px; padding:0; border-radius:6px; border:none; cursor:pointer; }
 
 #modal {
-  max-height: 90vh;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
+  background: #0b1220;
+  z-index: 2147483647;
+  padding: 40px 0; /* top/bottom breathing room */
 }
 
- /* backdrop */
+#modal .modal-body {
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
 #modalMask {
   position: fixed;
   inset: 0;
@@ -344,21 +355,6 @@ width: 115px;          /* or whatever you want */
   color: #fff;
 }
 
-/* FORCE the recipe editor modal to be full screen and visible */
-#modal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  background: #0b1220 !important;
-  overflow-y: auto !important;
-  border-radius: 0 !important;
-  transform: none !important;
-  display: none;
-  z-index: 2147483647 !important;
-}
-
 #modal * {
   opacity: 1 !important;
   visibility: visible !important;
@@ -462,18 +458,6 @@ width: 115px;          /* or whatever you want */
   z-index: 9998;
 }
 
-
-#modal {
-  position: fixed;
-  z-index: 9999;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(600px, 90vw);
-  background: #222;
-  padding: 20px;
-  border-radius: 8px;
-}
 
 .recipe-view,
 .recipe-detail,
@@ -784,7 +768,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 001");
+console.log("RENDER VERSION 002");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
