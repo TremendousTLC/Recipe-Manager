@@ -399,6 +399,39 @@ textarea{
   flex:0 0 auto;
 }
 
+/* Ingredient Groups */
+.ing-group {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.group-title {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: inherit;
+  margin-right: 10px;
+}
+
+.group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
 /* Minus button */
 .ing-row .rm{
   background:#661111;
@@ -843,7 +876,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 004");
+console.log("RENDER VERSION 005");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
