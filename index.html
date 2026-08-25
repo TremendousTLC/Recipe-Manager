@@ -91,17 +91,20 @@ h1{
   z-index:1;
 }
 .cat{
-  background:rgba(255,255,255,0.01);
-  border:1px solid rgba(255,255,255,0.03);
-  border-radius:10px;
-  overflow:hidden;
+  background:rgba(255,255,255,0.01);   /* purely visual background tint */
+  border:1px solid rgba(255,255,255,0.03); /* thin border around the category box */
+  border-radius:10px;                  /* rounded corners only */
+  overflow:hidden;                     /* hides child overflow (prevents bleed) */
+  padding: 6px;        /* inner spacing → reduces height */
+  margin-bottom: 10px; /* spacing between categories */
 }
 .cat-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:10px 12px;
+  padding:10px 12px;   /* top-bottom   left-right */
   gap:10px;
+  font-size: 15px;
 }
 .cat-left{
   display:flex;
@@ -154,22 +157,27 @@ h1{
   font-size:16px;
   opacity:0.95;
 }
-.recipe-list{
-  list-style:none;
-  margin:0;
-  padding:8px 12px;
-  display:flex;
+
+.recipe-list {
+  list-style:none;                  /* no bullets */
+  margin:0;                         /* reset default margin */
+  margin-top: 4px;                  /* space between header and first recipe */
+  padding:8px 12px;                 /* top-bottom   left-right */
+  display:flex;                     /* vertical stack */
   flex-direction:column;
-  gap:8px;
+  gap:8px;                          /* spacing between recipe rows */
 }
-.recipe-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px;
-  border-radius:8px;
-  background:rgba(255,255,255,0.01);
+
+.recipe-item {
+  display:flex;                     /* layout */
+  justify-content:space-between;    /* space between name + buttons */
+  align-items:center;               /* vertical centering */
+  margin: 2px 0;                    /* vertical spacing between rows */
+  padding: 4px 8px;                 /* top-bottom   left-right → row height */
+  border-radius:8px;                /* rounded corners */
+  background:rgba(255,255,255,0.01);/* subtle background */
 }
+
 .muted-note{
   color:var(--muted);
   font-size:13px;
@@ -576,16 +584,17 @@ textarea{
 }
 
 #modal {
-  background: #1e1e1e;
-  padding: 12px;        /* was 20px */
-  border-radius: 12px;
-  max-width: 900px;
-  margin: 20px auto;    /* was 40px */
-  position: relative;
+  background: #1e1e1e;   /* modal background color */
+  padding: 12px;         /* INNER padding of the modal box */
+  border-radius: 12px;   /* rounded corners */
+  max-width: 900px;      /* modal width limit */
+  margin: 20px auto;     /* OUTER spacing above/below the modal */
+  position: relative;    /* allows positioned children */
 }
 
+
 .modal-body > div {
-  margin-bottom: 10px;  /* was 20px */
+  margin-bottom: 10px;  /* spacing between every section inside the modal */
 }
 
 </style>
@@ -883,7 +892,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 012");
+console.log("RENDER VERSION 013");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
