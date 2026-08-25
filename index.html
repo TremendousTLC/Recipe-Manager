@@ -228,15 +228,7 @@ h1{
   margin:0 auto;
   padding:0 20px;
 }
-#modalMask{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.85);
-  backdrop-filter:blur(6px);
-  display:none;
-  z-index:2147483646;
-  pointer-events:auto;
-}
+
 #modalMask.open{
   display:block;
 }
@@ -583,19 +575,41 @@ textarea{
   padding-left: 20px;
 }
 
+/* Blur overlay */
+#modalMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;        /* overlay BELOW modal */
+  display: none;
+}
+
+/* Modal container */
 #modal {
-  background: #1e1e1e;   /* modal background color */
-  padding: 2px;         /* INNER padding of the modal box - was 12 */
-  border-radius: 12px;   /* rounded corners */
-  max-width: 900px;      /* modal width limit */
-  margin: 20px auto;     /* OUTER spacing above/below the modal */
-  position: relative;    /* allows positioned children */
+  background: #1e1e1e;
+  padding: 2px;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 90%;
+
+  /* REQUIRED modal behavior */
+  position: fixed;     /* float above page */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;       /* modal ABOVE blur */
+  display: none;       /* hidden until opened */
 }
 
-
+/* Spacing inside modal */
 .modal-body > div {
-  margin-bottom: 10px;  /* spacing between every section inside the modal */
+  margin-bottom: 10px;
 }
+
 
 </style>
 </head>
@@ -892,7 +906,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 014");
+console.log("RENDER VERSION 015");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
