@@ -680,6 +680,18 @@ textarea{
 </div> <!-- end wrap -->
 
 <script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    const modalMask = document.getElementById("modalMask");
+    const modal = document.getElementById("modal");
+
+    modalMask.addEventListener('click', () => {
+        document.activeElement.blur();
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    });
+});
+
 function attachSaveHandler() {
   const btn = document.getElementById("saveBtn");
 
@@ -882,7 +894,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 007");
+console.log("RENDER VERSION 008");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
