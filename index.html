@@ -703,7 +703,6 @@ document.getElementById("btnAddNote").onclick = () => {
   div.innerHTML = `<textarea placeholder="Note"></textarea>`;
   notes.appendChild(div);
 };
-</script>
 
 <div id="timerOverlay">
   <div id="timerOverlayContent">
@@ -711,8 +710,6 @@ document.getElementById("btnAddNote").onclick = () => {
     <button id="timerOverlayClose">Close</button>
   </div>
 </div>
-
-<script>
 
 const urlParams = new URLSearchParams(window.location.search);
 const recipeId = urlParams.get("recipe");
@@ -884,7 +881,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 001");
+console.log("RENDER VERSION 002");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
