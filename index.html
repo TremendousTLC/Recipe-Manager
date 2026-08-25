@@ -575,18 +575,17 @@ textarea{
   padding-left: 20px;
 }
 
-/* Modal layout */
 #modal {
   background: #1e1e1e;
-  padding: 20px;
+  padding: 12px;        /* was 20px */
   border-radius: 12px;
   max-width: 900px;
-  margin: 40px auto;
+  margin: 20px auto;    /* was 40px */
   position: relative;
 }
 
 .modal-body > div {
-  margin-bottom: 20px;
+  margin-bottom: 10px;  /* was 20px */
 }
 
 </style>
@@ -884,7 +883,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 011");
+console.log("RENDER VERSION 012");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
