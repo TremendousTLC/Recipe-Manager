@@ -945,7 +945,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 004");
+console.log("RENDER VERSION 005");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1110,7 +1110,10 @@ li.appendChild(leftDiv);
 li.appendChild(rightDiv);
 list.appendChild(li);
 
-openBtn.addEventListener("click", () => openEditorFor(r));
+openBtn.addEventListener("click", () => {
+  openEditorFor(r);      // opens modal
+  renderRecipeItems(r);  // viewer renders INSIDE modal
+});
 
 delBtn2.addEventListener("click", e => {
   e.stopPropagation();
