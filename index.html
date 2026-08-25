@@ -344,6 +344,7 @@ textarea{
 /* Ingredient row layout */
 .ing-row{
   display:flex;
+  flex-wrap: wrap;
   gap:2px;
   min-width:0;
   width:100%;
@@ -364,7 +365,7 @@ textarea{
 }
 .ing-name{
   flex:1;
-  min-width:0;
+  min-width:140;
   padding:2px 2px;
   box-sizing:border-box;
 }
@@ -377,6 +378,7 @@ textarea{
 }
 .rm-ing{
   flex:0 0 auto;
+  flex-shrink: 0;
 }
 
 /* Ingredient Groups */
@@ -907,7 +909,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 025");
+console.log("RENDER VERSION 026");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
