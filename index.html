@@ -224,7 +224,7 @@ h1{
 }
 
 #modal .modal-body{
-  max-width:1020px;
+  max-width:900px;
   margin:0 auto;
   padding:0 20px;
 }
@@ -595,14 +595,14 @@ textarea{
   border-radius: 12px;
   max-width: 900px;
   width: 90%;
-
-  /* REQUIRED modal behavior */
   position: fixed;     /* float above page */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1000;       /* modal ABOVE blur */
   display: none;       /* hidden until opened */
+  max-height: 90vh;        /* modal cannot exceed screen height */
+  overflow-y: auto;        /* enables scrolling INSIDE modal */
 }
 
 /* Spacing inside modal */
@@ -906,7 +906,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 015");
+console.log("RENDER VERSION 016");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
