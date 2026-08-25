@@ -883,7 +883,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 009");
+console.log("RENDER VERSION 010");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1415,17 +1415,6 @@ cancelBtn.addEventListener('click', () => {
     closeModal();   // ⭐ Correct way to close the modal
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    const modalMask = document.getElementById("modalMask");
-    const modal = document.getElementById("modal");
-
-    modalMask.addEventListener('click', () => {
-        document.activeElement.blur();
-        modal.style.display = "none";
-        modal.setAttribute("aria-hidden", "true");
-    });
-});
-
 /* ingredients collector */
 function collectIngredientsFromEditor() {
   const groups = [];
@@ -1894,6 +1883,17 @@ function renderRecipeItems(recipe) {
         container.appendChild(li);
     });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const modalMask = document.getElementById("modalMask");
+    const modal = document.getElementById("modal");
+
+    modalMask.addEventListener('click', () => {
+        document.activeElement.blur();
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    });
+});
 
 </script>
 </body>
