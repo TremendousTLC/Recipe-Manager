@@ -663,6 +663,13 @@ textarea{
         <button class="timer-btn" data-min="20">20 min</button>
         <button class="timer-btn" data-min="30">30 min</button>
       </div>
+	  
+	  <div id="timerOverlay">
+  <div id="timerOverlayContent">
+    <div id="timerOverlayDisplay">00:00</div>
+    <button id="timerOverlayClose">Close</button>
+  </div>
+</div>
 
       <div style="margin-top:10px;">
         <button id="customTimerBtn" class="timer-btn custom">Custom</button>
@@ -704,12 +711,7 @@ document.getElementById("btnAddNote").onclick = () => {
   notes.appendChild(div);
 };
 
-<div id="timerOverlay">
-  <div id="timerOverlayContent">
-    <div id="timerOverlayDisplay">00:00</div>
-    <button id="timerOverlayClose">Close</button>
-  </div>
-</div>
+
 
 const urlParams = new URLSearchParams(window.location.search);
 const recipeId = urlParams.get("recipe");
@@ -881,7 +883,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 002");
+console.log("RENDER VERSION 003");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
