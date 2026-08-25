@@ -675,68 +675,7 @@ textarea{
         <button id="customTimerBtn" class="timer-btn custom">Custom</button>
       </div>
     </div> <!-- end timers section -->
-	
-  <div class="modal-body">
-
-    <input type="hidden" id="rId">
-
-    <label class="muted-note">Category</label>
-    <div class="select-wrap">
-      <select id="rCategorySelect" aria-label="Recipe category"></select>
-    </div>
-
-    <input id="rName" type="text" placeholder="Recipe name" />
-
-    <div>
-      <label class="muted-note">Ingredients</label>
-      <div id="ings"></div>
-      <button id="btnAddGroup" class="btn">Add Ingredient Group</button>
-      <button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
-      <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
-    </div>
-
-    <div>
-      <label class="muted-note">Directions</label>
-      <div id="dirs"></div>
-      <button id="btnAddDirection" class="btn add-btn">Add Direction</button>
-    </div>
-
-    <div>
-      <label class="muted-note">Notes</label>
-      <div id="notes"></div>
-      <button id="btnAddNote" class="btn add-btn">Add Note</button>
-    </div>
-
-    <div style="margin-top:20px;">
-      <div class="timer-label">Timers</div>
-
-      <div id="timerButtonsRow">
-        <button class="timer-btn" data-min="1">1 min</button>
-        <button class="timer-btn" data-min="5">5 min</button>
-        <button class="timer-btn" data-min="10">10 min</button>
-        <button class="timer-btn" data-min="15">15 min</button>
-        <button class="timer-btn" data-min="20">20 min</button>
-        <button class="timer-btn" data-min="30">30 min</button>
-      </div>
-	  
-	  <div id="timerOverlay">
-  <div id="timerOverlayContent">
-    <div id="timerOverlayDisplay">00:00</div>
-    <button id="timerOverlayClose">Close</button>
-  </div>
-</div>
-
-      <div style="margin-top:10px;">
-        <button id="customTimerBtn" class="timer-btn custom">Custom</button>
-      </div>
-    </div> <!-- end timers section -->
-	 <ul id="recipeItems"></ul>
-
-  </div> <!-- end modal-body -->
-</div> <!-- end modal -->
-
-</div> <!-- end wrap -->
-
+	  <ul id="recipeItems"></ul>
   </div> <!-- end modal-body -->
 </div> <!-- end modal -->
 
@@ -945,7 +884,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 005");
+console.log("RENDER VERSION 006");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
