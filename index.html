@@ -593,7 +593,7 @@ textarea{
   background: #1e1e1e;
   padding: 2px;
   border-radius: 12px;
-  max-width: 100%;      /* was 900px */
+  max-width: 1000px;      /* was 900px */
   width: 100%;      /* was 90% */
   position: fixed;     /* float above page */
   top: 0;      /* stick to top */
@@ -601,6 +601,7 @@ textarea{
   transform: translate(-50%);      /* center horizontally only */
   z-index: 1000;       /* modal ABOVE blur */
   display: none;       /* hidden until opened */
+  height: 100vh;
   max-height: 100vh;        /* modal cannot exceed screen height */
   overflow-y: auto;        /* enables scrolling INSIDE modal */
 }
@@ -906,7 +907,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 018");
+console.log("RENDER VERSION 019");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
