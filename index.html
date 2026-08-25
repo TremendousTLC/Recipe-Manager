@@ -681,17 +681,6 @@ textarea{
 
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
-    const modalMask = document.getElementById("modalMask");
-    const modal = document.getElementById("modal");
-
-    modalMask.addEventListener('click', () => {
-        document.activeElement.blur();
-        modal.style.display = "none";
-        modal.setAttribute("aria-hidden", "true");
-    });
-});
-
 function attachSaveHandler() {
   const btn = document.getElementById("saveBtn");
 
@@ -894,7 +883,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 008");
+console.log("RENDER VERSION 009");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1426,12 +1415,16 @@ cancelBtn.addEventListener('click', () => {
     closeModal();   // ⭐ Correct way to close the modal
 });
 
-modalMask.addEventListener('click', () => {
-    document.activeElement.blur();
-    modal.style.display = "none";
-    modal.setAttribute("aria-hidden", "true");
-});
+document.addEventListener("DOMContentLoaded", () => {
+    const modalMask = document.getElementById("modalMask");
+    const modal = document.getElementById("modal");
 
+    modalMask.addEventListener('click', () => {
+        document.activeElement.blur();
+        modal.style.display = "none";
+        modal.setAttribute("aria-hidden", "true");
+    });
+});
 
 /* ingredients collector */
 function collectIngredientsFromEditor() {
