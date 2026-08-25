@@ -610,9 +610,7 @@ textarea{
 <div id="listRoot"></div>
 
 <!-- Modal editor -->
-<div id="modalMask"></div>
-
-<div id="modal" role="dialog" aria-hidden="true">
+<div id="modal" role="dialog" aria-hidden="true" style="display:none;">
   <div class="modal-head">
     <strong id="modalTitle">Edit Recipe</strong>
     <div class="inline">
@@ -884,7 +882,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 006");
+console.log("RENDER VERSION 007");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1051,7 +1049,6 @@ list.appendChild(li);
 
 openBtn.addEventListener("click", () => {
   openEditorFor(r);      // opens modal
-  renderRecipeItems(r);  // viewer renders INSIDE modal
 });
 
 delBtn2.addEventListener("click", e => {
