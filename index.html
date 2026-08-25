@@ -593,8 +593,8 @@ textarea{
   background: #1e1e1e;
   padding: 2px;
   border-radius: 12px;
-  max-width: 900px;
-  width: 90%;
+  max-width: 100%;      /* was 900px */
+  width: 100%;      /* was 90% */
   position: fixed;     /* float above page */
   top: 50%;
   left: 50%;
@@ -906,7 +906,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 016");
+console.log("RENDER VERSION 017");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
