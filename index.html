@@ -225,9 +225,9 @@ h1{
 }
 
 #modal .modal-body{
-  max-width:900px;
+  max-width:1400px;
   margin:0 auto;
-  padding:0 20px;
+  padding:0 10px;
 }
 
 #modalMask.open{
@@ -337,9 +337,17 @@ textarea{
 }
 
 @media (max-width:640px){
-  .modal-body{ padding:12px; }
-  select#rCategorySelect{ font-size:14px; padding:10px; }
+  .modal-body{
+    max-width:100%;      /* ensures full mobile width */
+    padding:12px;        /* your original mobile padding */
+  }
+
+  select#rCategorySelect{
+    font-size:14px;
+    padding:10px;
+  }
 }
+
 
 #ings {
   width: 100%;
@@ -597,22 +605,27 @@ textarea{
   display: none;
 }
 
-/* Modal container */
 #modal {
   background: #1e1e1e;
   padding: 2px;
   border-radius: 12px;
-  max-width: 1100px;      /* was 900px */
-  width: 100%;      /* was 90% */
-  position: fixed;     /* float above page */
-  top: 0;      /* stick to top */
+
+  /* FULL WIDTH MODAL */
+  max-width: 1400px;        /* was 1100px — this is the main fix */
+  width: 100%;              /* keep this */
+
+  position: fixed;
+  top: 0;
   left: 50%;
-  transform: translate(-50%);      /* center horizontally only */
-  z-index: 1000;       /* modal ABOVE blur */
-  display: none;       /* hidden until opened */
+  transform: translateX(-50%);  /* horizontal centering only */
+
+  z-index: 1000;
+  display: none;
+
+  /* HEIGHT BEHAVIOR */
   height: 100vh;
-  max-height: 100vh;        /* modal cannot exceed screen height */
-  overflow-y: auto;        /* enables scrolling INSIDE modal */
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 /* Spacing inside modal */
@@ -915,7 +928,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 011");
+console.log("RENDER VERSION 012");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
