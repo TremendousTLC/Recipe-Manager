@@ -46,6 +46,13 @@ h1{
   }
 }
 
+@media (max-width:640px){
+  #modal{
+    padding:0;   /* optional */
+  }
+}
+
+
 .muted{ color:var(--muted); font-size:13px; margin-bottom:12px; }
 
 /* Toolbar */
@@ -227,7 +234,7 @@ h1{
 #modal .modal-body{
   max-width:1400px;
   margin:0 auto;
-  padding:0 10px;
+  padding:0 20px;
 }
 
 #modalMask.open{
@@ -337,9 +344,9 @@ textarea{
 }
 
 @media (max-width:640px){
-  .modal-body{
+  #modal .modal-body{
     max-width:100%;      /* ensures full mobile width */
-    padding:12px;        /* your original mobile padding */
+    padding:0;        /* your original mobile padding */
   }
 
   select#rCategorySelect{
@@ -347,7 +354,6 @@ textarea{
     padding:10px;
   }
 }
-
 
 #ings {
   width: 100%;
@@ -928,7 +934,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 014");
+console.log("RENDER VERSION 015");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
