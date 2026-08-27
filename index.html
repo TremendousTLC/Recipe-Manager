@@ -376,9 +376,9 @@ textarea{
   box-sizing:border-box;
 }
 .ing-unit{
-  width:20px;
-  min-width:20px;
-  flex:0 0 20px;
+  width:30px;
+  min-width:30px;
+  flex:0 0 30px;
   padding:2px 2px;
   box-sizing:border-box;
 }
@@ -390,9 +390,9 @@ textarea{
   box-sizing:border-box;
 }
 .ing-prep{
-  width:70px;
-  min-width:70px;
-  flex:0 0 70px;
+  width:80px;
+  min-width:80px;
+  flex:0 0 80px;
   padding:2px 2px;
   box-sizing:border-box;
 }
@@ -818,7 +818,6 @@ function saveRecipe(recipe) {
   // Load existing recipes
   let recipes = read(KEY_RECIPES, []);
 
-  // Remove old version if exists
   recipes = recipes.filter(r => r.id !== recipe.id);
   
   // Read modal fields
@@ -934,7 +933,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 015");
+console.log("RENDER VERSION 001");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
