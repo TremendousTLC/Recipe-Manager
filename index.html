@@ -231,6 +231,12 @@ h1{
   cursor:pointer;
 }
 
+.modal-head .inline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
 #modal .modal-body{
   max-width:1400px;
   margin:0 auto;
@@ -548,7 +554,7 @@ textarea{
   background-color:#00e6ff;
   color:#000;
   border:none;
-  margin-top:10px;
+  margin-left:auto;
 }
 
 /* Editor modal */
@@ -672,6 +678,7 @@ textarea{
     <div class="inline">
       <button id="saveBtn" class="btn primary">Save</button>
       <button id="cancelBtn" class="btn">Cancel</button>
+	  <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
   </div>
 
@@ -690,7 +697,6 @@ textarea{
       <label class="muted-note">Ingredients</label>
       <div id="ings"></div>
       <button id="btnAddGroup" class="btn">Add Ingredient Group</button>
-      <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
 
     <div>
@@ -935,7 +941,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 014");
+console.log("RENDER VERSION 015");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
