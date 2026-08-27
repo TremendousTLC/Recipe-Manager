@@ -187,9 +187,16 @@ h1{
 }
 
 .muted-note{
-  color:var(--muted);
-  font-size:13px;
+  display:block;
+  font-weight:bold;
+  font-size:1.1rem;
+  background:#f0f0f0;      /* soft neutral background */
+  color:#333;              /* readable dark text */
+  padding:6px 12px;        /* indentation + breathing room */
+  border-radius:6px;       /* soft rounded corners */
+  margin:20px 0 10px;      /* spacing above/below */
 }
+
 
 .recipe-left{
   display:flex;
@@ -958,7 +965,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 018");
+console.log("RENDER VERSION 019");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
