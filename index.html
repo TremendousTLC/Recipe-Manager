@@ -187,16 +187,27 @@ h1{
 }
 
 .muted-note{
-  display:inline-block;
-  font-weight:600;
-  font-size:1.05rem;
-  color:#222;                 /* rich dark text */
-  background:#e3e3e3;         /* soft gray, not bright */
-  padding:4px 12px;           /* nice indentation */
-  border-radius:6px;          /* smooth corners */
-  margin:20px 0 10px;         /* spacing above/below */
-  box-shadow:0 1px 3px rgba(0,0,0,0.18); /* subtle shadow */
+  display:inline-block;          
+  font-weight:650;
+  font-size:1.08rem;
+
+  /* FLASHY COLOR — rich, bold, not neon */
+  background:#ffb347;            /* warm, saturated orange-gold */
+
+  /* DARKER FONT — readable, classy */
+  color:#1f1f1f;
+
+  padding:6px 14px;
+  border-radius:10px;
+
+  /* DEPTH — subtle glow + shadow */
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.25),      /* drop shadow */
+    0 0 6px rgba(255,180,70,0.55);   /* warm glow */
+
+  margin:22px 0 12px;
 }
+
 
 .recipe-left{
   display:flex;
@@ -965,7 +976,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 020");
+console.log("RENDER VERSION 021");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
