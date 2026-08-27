@@ -974,7 +974,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 023");
+console.log("RENDER VERSION 024");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1369,69 +1369,76 @@ function addNoteRow(text){
   notes.appendChild(row);
 }
 
-
 /* Open editor (uses select for category) */
-function openEditorFor(rec){
-  const r = rec || { id: "", name: "", ingredients: [], directions: [], notes: [], category: "" };
+function openEditorFor(rec) {
+  // Load recipe or create a blank one
+  const r = rec || { 
+    id: "", 
+    name: "", 
+    ingredients: [], 
+    directions: [], 
+    notes: [], 
+    category: "" 
+  };
 
-  rId.value = r ? r.id : '';
-  rName.value = r ? r.name : '';
+  // Fill ID + name fields
+  rId.value = r.id || "";
+  rName.value = r.name || "";
 
   // Clear sections
-  ings.innerHTML = '';
-  dirs.innerHTML = '';
-  notes.innerHTML = '';
+  ings.innerHTML = "";
+  dirs.innerHTML = "";
+  notes.innerHTML = "";
 
-// Load ingredients (supports grouped + flat)
-if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
+  // ⭐ INGREDIENTS (grouped + flat)
+  if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
 
     const isGrouped = typeof r.ingredients[0] === "object" &&
                       r.ingredients[0].items;
 
     if (isGrouped) {
-        // TRUE GROUPED FORMAT
-        r.ingredients.forEach(g => {
-            const groupEl = addGroup(g.title || "");
-            const container = groupEl.querySelector(".group-items");
-
-            g.items.forEach(item => {
-                addIngRow(item, container);
-            });
-        });
-
-    } else {
-        // FLAT FORMAT → wrap into one group
-        const groupEl = addGroup("");
+      // TRUE GROUPED FORMAT
+      r.ingredients.forEach(g => {
+        const groupEl = addGroup(g.title || "");
         const container = groupEl.querySelector(".group-items");
 
-        r.ingredients.forEach(item => {
-            addIngRow(item, container);
+        g.items.forEach(item => {
+          addIngRow(item, container);
         });
+      });
+
+    } else {
+      // FLAT FORMAT → wrap into one group
+      const groupEl = addGroup("");
+      const container = groupEl.querySelector(".group-items");
+
+      r.ingredients.forEach(item => {
+        addIngRow(item, container);
+      });
     }
 
-} else {
+  } else {
     // No ingredients → create one empty group + row
     const groupEl = addGroup("");
     const container = groupEl.querySelector(".group-items");
     addIngRow({}, container);
-}
+  }
 
+  // ⭐ DIRECTIONS
+  (r.directions || []).forEach(d => addDirRow(d));
+  if (!r.directions || !r.directions.length) addDirRow();
 
-  // Load directions
-  (r && r.directions || []).forEach(d=>addDirRow(d));
-  if(!(r && r.directions && r.directions.length)) addDirRow();
-
-  // Load notes
-  (r && r.notes || []).forEach(n => addNoteRow(n));
-  if (!(r && r.notes && r.notes.length)) addNoteRow();
+  // ⭐ NOTES
+  (r.notes || []).forEach(n => addNoteRow(n));
+  if (!r.notes || !r.notes.length) addNoteRow();
 
   // Title
-  modalTitle.textContent = r ? 'Edit Recipe' : 'New Recipe';
+  modalTitle.textContent = r ? "Edit Recipe" : "New Recipe";
 
-  // Category dropdown
+  // ⭐ CATEGORY DROPDOWN
   populateCategorySelect();
-  const cats = Array.from(rCategorySelect.options).map(o=>o.value);
-  const desired = r && r.category ? r.category : (cats[0] || 'Uncategorized');
+  const cats = Array.from(rCategorySelect.options).map(o => o.value);
+  const desired = r.category ? r.category : (cats[0] || "Uncategorized");
 
   if (cats.includes(desired)) {
     rCategorySelect.value = desired;
@@ -1444,21 +1451,20 @@ if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
     rCategorySelect.value = desired;
   }
 
-  // Open modal
+  // ⭐ OPEN MODAL
   currentRecipe = r;
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden','false');
-  modalMask.classList.add('open');
-  modal.style.display = 'block';
-  
-  // ⭐ SEND TO SHOPPING MANAGER BUTTON
+  currentEditingRecipeId = r.id;   // ⭐ THIS FIXES YOUR SENDER
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  modalMask.classList.add("open");
+  modal.style.display = "block";
+
+  // ⭐ SEND TO SHOPPING MANAGER BUTTON (FIXED)
   const sendBtn = document.getElementById("sendToShoppingBtn");
   sendBtn.onclick = () => {
-    const recipeId = rId.value;
-    console.log("SEND BUTTON CLICKED, ID =", recipeId);
-    sendToShopping(recipeId);
+    console.log("SEND BUTTON CLICKED, ID =", currentEditingRecipeId);
+    sendToShopping(currentEditingRecipeId);
   };
-
 }
 
 /* Close modal */
