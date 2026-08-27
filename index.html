@@ -397,8 +397,12 @@ textarea{
   box-sizing:border-box;
 }
 .rm-ing{
-  flex:0 0 auto;
-  flex-shrink: 0;
+  font-size:16px;     /* smaller symbol */
+  padding:0 4px;      /* tighter left/right padding */
+  line-height:1;      /* prevents vertical stretching */
+  flex-shrink:0;      /* keeps it from collapsing */
+  width:auto;         /* ensures natural width */
+  height:auto;        /* ensures natural height */
 }
 
 /* Ingredient Groups */
@@ -933,7 +937,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 003");
+console.log("RENDER VERSION 004");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
