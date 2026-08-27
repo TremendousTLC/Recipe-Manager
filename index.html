@@ -775,6 +775,8 @@ textarea{
 
 <script>
 
+let currentEditingRecipeId = null;
+
 function attachSaveHandler() {
   const btn = document.getElementById("saveBtn");
 
@@ -974,7 +976,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 024");
+console.log("RENDER VERSION 025");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
