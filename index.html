@@ -358,6 +358,8 @@ textarea{
 #ings {
   width: 100%;
   max-width: 100%;
+  padding:0;
+  margin:0;
 }
 
 /* Ingredient row layout */
@@ -409,9 +411,9 @@ textarea{
 .ing-group {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
-  padding: 12px;
+  padding:0;
   border-radius: 10px;
-  margin-bottom: 16px;
+  margin:4px 0;
 }
 
 .group-header {
@@ -436,6 +438,8 @@ textarea{
   flex-direction: column;
   gap: 6px;
   margin-bottom: 10px;
+  padding:0;
+  margin:0;
 }
 
 /* Minus button */
@@ -766,8 +770,6 @@ document.getElementById("btnAddNote").onclick = () => {
   notes.appendChild(div);
 };
 
-
-
 const urlParams = new URLSearchParams(window.location.search);
 const recipeId = urlParams.get("recipe");
 
@@ -937,7 +939,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 004");
+console.log("RENDER VERSION 005");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
