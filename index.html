@@ -187,26 +187,24 @@ h1{
 }
 
 .muted-note{
-  display:inline-block;          
+  display:inline-block;          /* background hugs ONLY the text */
   font-weight:650;
   font-size:1.08rem;
 
-  /* FLASHY COLOR — rich, bold, not neon */
-  background:#ffb347;            /* warm, saturated orange-gold */
+  background:#ffb347;            /* flashy warm color */
+  color:#1f1f1f;                 /* darker font */
 
-  /* DARKER FONT — readable, classy */
-  color:#1f1f1f;
+  padding:6px 14px;              /* comfortable text padding */
+  border-radius:10px;            /* modern rounded tag */
 
-  padding:6px 14px;
-  border-radius:10px;
-
-  /* DEPTH — subtle glow + shadow */
+  /* subtle glow + shadow */
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.25),      /* drop shadow */
-    0 0 6px rgba(255,180,70,0.55);   /* warm glow */
+    0 2px 4px rgba(0,0,0,0.25),
+    0 0 6px rgba(255,180,70,0.55);
 
-  margin:22px 0 12px;
+  margin:22px 0 12px;            /* spacing above/below */
 }
+
 
 
 .recipe-left{
@@ -976,7 +974,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 021");
+console.log("RENDER VERSION 022");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
