@@ -544,13 +544,6 @@ textarea{
   margin:20px 0 10px 0;
 }
 
-/* Shopping list buttons */
-#useAsShoppingListBtn{
-  background-color:#333;
-  color:#00e6ff;
-  border:1px solid #00e6ff;
-  margin-top:10px;
-}
 #sendToShoppingBtn{
   background-color:#00e6ff;
   color:#000;
@@ -697,7 +690,6 @@ textarea{
       <label class="muted-note">Ingredients</label>
       <div id="ings"></div>
       <button id="btnAddGroup" class="btn">Add Ingredient Group</button>
-      <button id="useAsShoppingListBtn" class="btn">Use as Shopping List</button>
       <button id="sendToShoppingBtn" class="btn primary">Send to Shopping Manager</button>
     </div>
 
@@ -943,7 +935,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 013");
+console.log("RENDER VERSION 014");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
@@ -1427,14 +1419,6 @@ if (Array.isArray(r.ingredients) && r.ingredients.length > 0) {
     console.log("SEND BUTTON CLICKED, ID =", recipeId);
     sendToShopping(recipeId);
   };
-
-  // ⭐ USE AS SHOPPING LIST BUTTON
-  const useBtn = document.getElementById("useAsShoppingListBtn");
-  useBtn.onclick = () => {
-    document.querySelectorAll(".ingredient-check").forEach(cb => cb.checked = true);
-    console.log("All ingredients checked for shopping list");
-  };
-}
 
 /* Close modal */
 function closeModal(){
