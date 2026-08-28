@@ -854,9 +854,9 @@ function saveRecipe(recipe) {
   recipe.ingredients = collectIngredientsFromEditor();
 
   // Ensure recipe has an ID
-  if (!recipe.id) {
-    recipe.id = "r_" + Math.random().toString(36).slice(2,10);
-  }
+  if (!recipe.id || recipe.id === "undefined" || recipe.id === undefined || recipe.id === null) {
+  recipe.id = "r_" + Math.random().toString(36).slice(2,10);
+}
 
   // Load existing recipes
   let recipes = read(KEY_RECIPES, []);
@@ -976,7 +976,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 025");
+console.log("RENDER VERSION 026");
 
 
   // ⭐ Correct root container — no fallbacks ⭐
