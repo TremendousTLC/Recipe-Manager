@@ -833,22 +833,32 @@ let recipe = {
 
 function repairRecipeIds() {
   let recipes = read(KEY_RECIPES, []);
-
   let changed = false;
 
+  const seen = new Set();
+
   recipes.forEach(r => {
+    // Fix missing or broken IDs
     if (!r.id || r.id === "undefined" || r.id === undefined || r.id === null) {
       r.id = "r_" + Math.random().toString(36).slice(2,10);
       changed = true;
-      console.log("Repaired recipe ID for:", r.name, "→", r.id);
+      console.log("Repaired missing ID for:", r.name, "→", r.id);
     }
+
+    // Fix duplicate IDs
+    if (seen.has(r.id)) {
+      const old = r.id;
+      r.id = "r_" + Math.random().toString(36).slice(2,10);
+      changed = true;
+      console.log("Fixed duplicate ID:", old, "→", r.id, "for recipe:", r.name);
+    }
+
+    seen.add(r.id);
   });
 
   if (changed) {
     write(KEY_RECIPES, recipes);
     console.log("Recipe ID repair complete.");
-  } else {
-    console.log("No recipe IDs needed repair.");
   }
 }
 
@@ -997,8 +1007,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 026");
-
+console.log("RENDER VERSION 027");
 
   // ⭐ Correct root container — no fallbacks ⭐
   const root = document.getElementById('listRoot');
