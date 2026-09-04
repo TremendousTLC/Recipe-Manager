@@ -975,11 +975,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const addDir = document.getElementById('btnAddDirection');
   const addNote = document.getElementById('btnAddNote');
 
+  /* Group button */
   const addGroupBtn = document.getElementById("btnAddGroup");
   if (addGroupBtn) {
     addGroupBtn.onclick = () => addGroup("");
   }
 
+  /* Capture button */
   const captureBtn = document.getElementById('captureRecipeBtn');
   if (captureBtn) {
     captureBtn.addEventListener('click', () => {
@@ -987,6 +989,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   } else {
     console.error('captureRecipeBtn not found');
+  }
+
+  /* ⭐ ADD YOUR MISSING EVENT LISTENERS HERE — THIS IS THE CORRECT SPOT ⭐ */
+
+  if (addDir) {
+    addDir.addEventListener('click', () => addDirRow());
+  } else {
+    console.error('btnAddDirection not found');
+  }
+
+  if (addNote) {
+    addNote.addEventListener('click', () => addNoteRow());
+  } else {
+    console.error('btnAddNote not found');
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      closeModal();
+    });
+  } else {
+    console.error('cancelBtn not found');
   }
 
   /* Load data and normalize */
@@ -1027,7 +1051,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 001");
+console.log("RENDER VERSION 002");
 
   // ⭐ Correct root container — no fallbacks ⭐
   const root = document.getElementById('listRoot');
@@ -1548,13 +1572,6 @@ addCategory.addEventListener('click', ()=>{
   } else {
     alert(`Category "${n}" already exists.`);
   }
-});
-
-addDir.addEventListener('click', ()=> addDirRow());
-addNote.addEventListener('click', () => addNoteRow());
-
-cancelBtn.addEventListener('click', () => {
-    closeModal();   // ⭐ Correct way to close the modal
 });
 
 /* ingredients collector */
