@@ -952,42 +952,62 @@ function normalizeCategories(raw){
 
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* Elements */
-const root = document.getElementById('listRoot');
-const listRoot = document.getElementById('listRoot');
-const addNew = document.getElementById('addNew');
-const addCategory = document.getElementById('addCategory');
-const modal = document.getElementById('modal');
-const modalMask = document.getElementById('modalMask');
-const modalTitle = document.getElementById('modalTitle');
-const saveBtn = document.getElementById('saveBtn');
-const cancelBtn = document.getElementById('cancelBtn');
+document.addEventListener('DOMContentLoaded', () => {
 
-const rName = document.getElementById('rName');
-const rCategorySelect = document.getElementById('rCategorySelect');
-const rId = document.getElementById('rId');
-const ings = document.getElementById('ings');
-const dirs = document.getElementById('dirs');
-const notes = document.getElementById('notes');
-const addIng = document.getElementById('btnAddIngredient');
-const addDir = document.getElementById('btnAddDirection');
-const addNote = document.getElementById('btnAddNote');
+  /* Elements */
+  const root = document.getElementById('listRoot');
+  const listRoot = document.getElementById('listRoot');
+  const addNew = document.getElementById('addNew');
+  const addCategory = document.getElementById('addCategory');
+  const modal = document.getElementById('modal');
+  const modalMask = document.getElementById('modalMask');
+  const modalTitle = document.getElementById('modalTitle');
+  const saveBtn = document.getElementById('saveBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
 
-document.addEventListener("DOMContentLoaded", () => {
+  const rName = document.getElementById('rName');
+  const rCategorySelect = document.getElementById('rCategorySelect');
+  const rId = document.getElementById('rId');
+  const ings = document.getElementById('ings');
+  const dirs = document.getElementById('dirs');
+  const notes = document.getElementById('notes');
+  const addIng = document.getElementById('btnAddIngredient');
+  const addDir = document.getElementById('btnAddDirection');
+  const addNote = document.getElementById('btnAddNote');
+
   const addGroupBtn = document.getElementById("btnAddGroup");
   if (addGroupBtn) {
     addGroupBtn.onclick = () => addGroup("");
   }
-});
 
-/* Load data and normalize */
-let recipes = read(KEY_RECIPES, []);
-if (!Array.isArray(recipes)) recipes = [];
-let catsRaw = read(KEY_CATS, []);
-let categories = normalizeCategories(catsRaw);
-recipes.forEach(r => { if (r && r.category && !categories.some(c=>c.name===r.category)) categories.push({ name: r.category, color: colorForName(r.category) }); });
-if (categories.length === 0) categories = [{ name: 'Uncategorized', color: colorForName('Uncategorized') }];
-write(KEY_CATS, categories);
+  const captureBtn = document.getElementById('captureRecipeBtn');
+  if (captureBtn) {
+    captureBtn.addEventListener('click', () => {
+      window.location.href = 'capture.html';
+    });
+  } else {
+    console.error('captureRecipeBtn not found');
+  }
+
+  /* Load data and normalize */
+  let recipes = read(KEY_RECIPES, []);
+  if (!Array.isArray(recipes)) recipes = [];
+
+  let catsRaw = read(KEY_CATS, []);
+  let categories = normalizeCategories(catsRaw);
+
+  recipes.forEach(r => {
+    if (r && r.category && !categories.some(c => c.name === r.category)) {
+      categories.push({ name: r.category, color: colorForName(r.category) });
+    }
+  });
+
+  if (categories.length === 0) {
+    categories = [{ name: 'Uncategorized', color: colorForName('Uncategorized') }];
+  }
+
+  write(KEY_CATS, categories);
+});
 
 /* Populate category select */
 function populateCategorySelect(){
@@ -1007,7 +1027,7 @@ function populateCategorySelect(){
 /* Render categories and recipes */
 function render() {
 
-console.log("RENDER VERSION 027");
+console.log("RENDER VERSION 001");
 
   // ⭐ Correct root container — no fallbacks ⭐
   const root = document.getElementById('listRoot');
