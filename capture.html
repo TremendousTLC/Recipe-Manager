@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 10</title>
+  <title>Capture Recipe 11</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -311,7 +311,7 @@ function fillFromRegions(regionOCR) {
     console.log("DETAILS REGION OCR:\n", regionOCR.DETAILS);
   }
 
-  // INGREDIENTS (Option A – simple, stable)
+  // INGREDIENTS (simple, stable)
   if (regionOCR.INGREDIENTS) {
     const lines = regionOCR.INGREDIENTS
       .split('\n')
@@ -361,6 +361,7 @@ function fillFromRegions(regionOCR) {
 (() => {
   if (!preview) return;
 
+  // GLOBAL STATE
   let regions = [];
   let activeRegionIndex = null;
   let drawing = false;
@@ -395,6 +396,7 @@ function fillFromRegions(regionOCR) {
   const runRegionBtn = document.getElementById("runRegionBtn");
   const regionList = document.getElementById("regionList");
 
+  // PRESET BUTTONS
   function buildPresetButtons() {
     for (let i = 0; i < MAX_PRESETS; i++) {
       const wrap = document.createElement("div");
@@ -452,6 +454,7 @@ function fillFromRegions(regionOCR) {
     });
   }
 
+  // REGION CONTROLS
   addRegionBtn.addEventListener("click", () => {
     drawing = true;
     currentRect = null;
@@ -464,6 +467,7 @@ function fillFromRegions(regionOCR) {
     ).join("\n");
   }
 
+  // DRAWING
   regionCanvas.addEventListener("mousedown", e => {
     const rect = regionCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -563,6 +567,7 @@ function fillFromRegions(regionOCR) {
     resizeEdge = null;
   });
 
+  // DRAW / PRESETS
   function redraw() {
     ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
 
@@ -617,18 +622,6 @@ function fillFromRegions(regionOCR) {
     for (let i = 0; i < MAX_PRESETS; i++) {
       presetLabels[i].textContent = presets[i].name || "(empty)";
     }
-  }
-
-  function normalizeRegions() {
-    const w = regionCanvas.width;
-    const h = regionCanvas.height;
-    return regions.map(r => ({
-      xNorm: r.x / w,
-      yNorm: r.y / h,
-      wNorm: r.w / w,
-      hNorm: r.h / h,
-      type: r.type
-    }));
   }
 
   function applyPreset(preset) {
@@ -754,375 +747,6 @@ async function runRegionOCR() {
 }
 
 document.getElementById("runRegionBtn").addEventListener("click", runRegionOCR);
-</script>
-
-
-<script>
-(() => {
-  if (!preview) return;
-
-  // ---------- GLOBAL STATE ----------
-  let regions = [];
-  let activeRegionIndex = null;
-  let drawing = false;
-  let dragMode = null;
-  let dragOffsetX = 0, dragOffsetY = 0;
-  let resizeEdge = null;
-  let startX = 0, startY = 0;
-  let currentRect = null;
-
-  const TYPE_COLORS = {
-    TITLE: '#1e90ff',
-    DETAILS: '#2ecc71',
-    INGREDIENTS: '#e74c3c',
-    DIRECTIONS: '#e67e22',
-    NOTES: '#9b59b6'
-  };
-
-  const MAX_PRESETS = 5;
-  let presets = [];
-  let activePresetIndex = null;
-  let selectedPresetIndex = 0;
-
-  // ---------- WRAP PREVIEW ----------
-  const previewWrapper = document.getElementById("previewWrapper");
-  const regionCanvas = document.getElementById("regionCanvas");
-  const ctx = regionCanvas.getContext("2d");
-
-  // ---------- PRESET BAR ----------
-  const presetButtonsRow = document.getElementById("presetButtonsRow");
-  const presetButtons = [];
-  const presetLabels = [];
-
-  const miniMapPopup = document.getElementById("miniMapPopup");
-  const miniCanvas = document.getElementById("miniMapCanvas");
-  const miniCtx = miniCanvas.getContext("2d");
-
-  function buildPresetButtons() {
-    for (let i = 0; i < MAX_PRESETS; i++) {
-      const wrap = document.createElement("div");
-      wrap.style.display = "flex";
-      wrap.style.flexDirection = "column";
-      wrap.style.alignItems = "center";
-
-      const btn = document.createElement("button");
-      btn.textContent = `Preset ${i + 1}`;
-      btn.className = "btn secondary";
-      btn.dataset.index = i;
-
-      const label = document.createElement("div");
-      label.textContent = "(empty)";
-      label.style.fontSize = "11px";
-      label.style.marginTop = "2px";
-
-      wrap.appendChild(btn);
-      wrap.appendChild(label);
-      presetButtonsRow.appendChild(wrap);
-
-      presetButtons.push(btn);
-      presetLabels.push(label);
-
-      btn.addEventListener("click", () => {
-        selectedPresetIndex = i;
-        loadPreset(i);
-      });
-
-      btn.addEventListener("mouseenter", e => showMiniMap(i, e));
-      btn.addEventListener("mouseleave", () => miniMapPopup.style.display = "none");
-    }
-  }
-
-  buildPresetButtons();
-
-  function showMiniMap(index, evt) {
-    const preset = presets[index];
-    if (!preset || !preset.regions.length) return;
-
-    const rect = evt.target.getBoundingClientRect();
-    miniMapPopup.style.left = rect.left + "px";
-    miniMapPopup.style.top = rect.bottom + 4 + "px";
-    miniMapPopup.style.display = "block";
-
-    miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-
-    preset.regions.forEach(r => {
-      const x = r.xNorm * miniCanvas.width;
-      const y = r.yNorm * miniCanvas.height;
-      const w = r.wNorm * miniCanvas.width;
-      const h = r.hNorm * miniCanvas.height;
-      miniCtx.strokeStyle = TYPE_COLORS[r.type];
-      miniCtx.strokeRect(x, y, w, h);
-    });
-  }
-
-  // ---------- REGION CONTROLS ----------
-  const addRegionBtn = document.getElementById("addRegionBtn");
-  const runRegionBtn = document.getElementById("runRegionBtn");
-  const regionList = document.getElementById("regionList");
-
-  addRegionBtn.addEventListener("click", () => {
-    drawing = true;
-    currentRect = null;
-    regionCanvas.style.cursor = "crosshair";
-  });
-
-  function updateRegionList() {
-    regionList.textContent = regions.map((r, i) =>
-      `${i + 1}. ${r.type} @ x=${Math.round(r.x)}, y=${Math.round(r.y)}, w=${Math.round(r.w)}, h=${Math.round(r.h)}`
-    ).join("\n");
-  }
-
-  // ---------- DRAWING ----------
-  regionCanvas.addEventListener("mousedown", e => {
-    const rect = regionCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (drawing) {
-      startX = x;
-      startY = y;
-      currentRect = { x, y, w: 0, h: 0 };
-      redraw();
-      return;
-    }
-
-    const idx = findRegionAt(x, y);
-    if (idx !== null) {
-      activeRegionIndex = idx;
-      const r = regions[idx];
-      const edge = findResizeEdge(r, x, y);
-
-      if (edge) {
-        dragMode = "resize";
-        resizeEdge = edge;
-        dragOffsetX = x;
-        dragOffsetY = y;
-      } else {
-        dragMode = "move";
-        dragOffsetX = x - r.x;
-        dragOffsetY = y - r.y;
-      }
-      redraw();
-    } else {
-      activeRegionIndex = null;
-      dragMode = null;
-      resizeEdge = null;
-      redraw();
-    }
-  });
-
-  regionCanvas.addEventListener("mousemove", e => {
-    const rect = regionCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (drawing && currentRect) {
-      currentRect.w = x - startX;
-      currentRect.h = y - startY;
-      redraw();
-      return;
-    }
-
-    if (dragMode && activeRegionIndex !== null) {
-      const r = regions[activeRegionIndex];
-
-      if (dragMode === "move") {
-        r.x = x - dragOffsetX;
-        r.y = y - dragOffsetY;
-      } else if (dragMode === "resize") {
-        if (resizeEdge === "right") r.w = x - r.x;
-        if (resizeEdge === "left") {
-          const oldRight = r.x + r.w;
-          r.x = x;
-          r.w = oldRight - r.x;
-        }
-        if (resizeEdge === "bottom") r.h = y - r.y;
-        if (resizeEdge === "top") {
-          const oldBottom = r.y + r.h;
-          r.y = y;
-          r.h = oldBottom - r.y;
-        }
-      }
-
-      redraw();
-      updateRegionList();
-    }
-  });
-
-  regionCanvas.addEventListener("mouseup", () => {
-    if (drawing && currentRect) {
-      drawing = false;
-      regionCanvas.style.cursor = "default";
-
-      let { x, y, w, h } = currentRect;
-      if (w < 0) { x += w; w = -w; }
-      if (h < 0) { y += h; h = -h; }
-
-      const type = prompt("Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):", "INGREDIENTS");
-      if (type) {
-        regions.push({ x, y, w, h, type: type.toUpperCase() });
-        updateRegionList();
-      }
-
-      currentRect = null;
-      redraw();
-    }
-
-    dragMode = null;
-    resizeEdge = null;
-  });
-
-  function redraw() {
-    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
-
-    regions.forEach((r, i) => {
-      ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
-      ctx.strokeStyle = TYPE_COLORS[r.type];
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-    });
-
-    if (currentRect) {
-      ctx.strokeStyle = "#ffff00";
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
-    }
-  }
-
-  function findRegionAt(x, y) {
-    for (let i = regions.length - 1; i >= 0; i--) {
-      const r = regions[i];
-      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return i;
-    }
-    return null;
-  }
-
-  function findResizeEdge(r, x, y) {
-    const m = 8;
-    if (Math.abs(x - r.x) <= m) return "left";
-    if (Math.abs(x - (r.x + r.w)) <= m) return "right";
-    if (Math.abs(y - r.y) <= m) return "top";
-    if (Math.abs(y - (r.y + r.h)) <= m) return "bottom";
-    return null;
-  }
-
-  // ---------- PRESETS ----------
-  function loadPresetsFromStorage() {
-    try {
-      const raw = localStorage.getItem("ocrPresetsV1");
-      if (raw) presets = JSON.parse(raw);
-    } catch {}
-  }
-
-  function savePresetsToStorage() {
-    localStorage.setItem("ocrPresetsV1", JSON.stringify(presets));
-  }
-
-  function ensurePresetSlots() {
-    while (presets.length < MAX_PRESETS) {
-      presets.push({ name: "", regions: [] });
-    }
-  }
-
-  function updatePresetLabels() {
-    ensurePresetSlots();
-    for (let i = 0; i < MAX_PRESETS; i++) {
-      presetLabels[i].textContent = presets[i].name || "(empty)";
-    }
-  }
-
-  function normalizeRegions() {
-    const w = regionCanvas.width;
-    const h = regionCanvas.height;
-    return regions.map(r => ({
-      xNorm: r.x / w,
-      yNorm: r.y / h,
-      wNorm: r.w / w,
-      hNorm: r.h / h,
-      type: r.type
-    }));
-  }
-
-  function applyPreset(preset) {
-    const w = regionCanvas.width;
-    const h = regionCanvas.height;
-
-    regions = preset.regions.map(r => ({
-      x: r.xNorm * w,
-      y: r.yNorm * h,
-      w: r.wNorm * w,
-      h: r.hNorm * h,
-      type: r.type
-    }));
-
-    redraw();
-    updateRegionList();
-  }
-
-  function loadPreset(index) {
-    ensurePresetSlots();
-    const preset = presets[index];
-
-    if (!preset || !preset.regions.length) {
-      regions = [];
-      redraw();
-      updateRegionList();
-      return;
-    }
-
-    applyPreset(preset);
-    activePresetIndex = index;
-  }
-
-  // ---------- DEFAULT KENT ROLLINS PRESET ----------
-  function initKentPreset() {
-    const baseW = 912;
-    const baseH = 1095;
-
-    const def = [
-      { x: 46, y: 34, w: 820, h: 114, type: "TITLE" },
-      { x: 46, y: 171, w: 820, h: 114, type: "DETAILS" },
-      { x: 46, y: 319, w: 392, h: 513, type: "INGREDIENTS" },
-      { x: 474, y: 319, w: 392, h: 513, type: "DIRECTIONS" },
-      { x: 46, y: 867, w: 820, h: 228, type: "NOTES" }
-    ];
-
-    presets[0] = {
-      name: "Kent Rollins",
-      regions: def.map(r => ({
-        xNorm: r.x / baseW,
-        yNorm: r.y / baseH,
-        wNorm: r.w / baseW,
-        hNorm: r.h / baseH,
-        type: r.type
-      }))
-    };
-
-    savePresetsToStorage();
-    updatePresetLabels();
-  }
-
-  // ---------- CANVAS RESIZE ----------
-  function resizeCanvas() {
-    const rect = preview.getBoundingClientRect();
-    regionCanvas.width = rect.width;
-    regionCanvas.height = rect.height;
-    regionCanvas.style.display = "block";
-
-    loadPresetsFromStorage();
-    ensurePresetSlots();
-    updatePresetLabels();
-
-    if (presets[0].regions.length) {
-      applyPreset(presets[0]);
-    } else {
-      initKentPreset();
-      applyPreset(presets[0]);
-    }
-  }
-
-  preview.addEventListener("load", resizeCanvas);
-  if (preview.complete) resizeCanvas();
-
-})();
 </script>
 
 </body>
