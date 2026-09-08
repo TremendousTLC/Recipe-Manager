@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 06</title>
+  <title>Capture Recipe 07</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -106,68 +106,88 @@
 
 <body>
 
-  <h1>Capture Recipe → Auto‑Import</h1>
-  <p>Upload a screenshot, edit the extracted recipe, then save it directly into your Recipe Manager.</p>
+<h1>Capture Recipe → Auto‑Import</h1>
+<p>Upload a screenshot, drag‑and‑drop an image, or right‑click here and paste from clipboard.</p>
 
-  <input type="file" id="fileInput" accept="image/*" class="btn">
-  <button id="runOCR" class="btn">Run OCR</button>
+<input type="file" id="fileInput" accept="image/*" class="btn">
+<button id="runOCR" class="btn">Run OCR</button>
 
-  <img id="preview" />
+<img id="preview" />
 
-  <h2>Cleaned OCR Text</h2>
-  <textarea id="output"></textarea>
+<h2>Cleaned OCR Text</h2>
+<textarea id="output" placeholder="Drag or drop your pic above, or right‑click here to paste from clipboard..."></textarea>
 
-  <h2>Recipe Details (Editable)</h2>
+<!-- ========== UPDATED LANDING PAGE (MATCHES PRESET LAYOUT) ========== -->
+<div id="landingPage" style="margin-top:20px;">
 
-  <label>Name</label>
-  <input id="recipeName" type="text">
+  <!-- TITLE -->
+  <h2>Recipe Title</h2>
+  <input id="nameInput" type="text" class="form-control" placeholder="Recipe name">
 
-  <label style="margin-top:10px;">Category</label>
-  <input id="recipeCategory" type="text" placeholder="e.g., Dinner, Dessert">
-
-  <h3>Ingredients</h3>
-  <table id="ingredientsTable">
-    <thead>
-      <tr>
-        <th>Qty</th>
-        <th>Unit</th>
-        <th>Name</th>
-        <th>Prep</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button id="addIngredient" class="btn">Add Ingredient</button>
-
-  <h3>Directions</h3>
-  <textarea id="recipeDirections"></textarea>
-
-  <h3>Notes</h3>
-  <textarea id="recipeNotes"></textarea>
-
-  <button id="saveRecipe" class="btn">Save to Recipe Manager</button>
-  <button id="showJson" class="btn secondary">Show JSON</button>
-
-  <div id="jsonOutput" style="display:none;"></div>
-
-  <button id="debugToggle" class="btn secondary">Show Debug</button>
-
-  <div id="debugPanel">
-    <h3>Raw OCR</h3>
-    <textarea id="debugRaw"></textarea>
-
-    <h3>Cleaned OCR (editable)</h3>
-    <textarea id="debugCleaned"></textarea>
-    <button id="debugReparse" class="btn">Re‑Parse Ingredients from Cleaned OCR</button>
-
-    <h3>Ingredient Lines</h3>
-    <pre id="debugLines"></pre>
-
-    <h3>Parsed Ingredients (qty/unit/name/prep)</h3>
-    <pre id="debugParsed"></pre>
+  <!-- DETAILS -->
+  <h3 style="margin-top:15px;">Details</h3>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input id="servingsInput" type="text" class="form-control" placeholder="Servings">
+    <input id="prepTimeInput" type="text" class="form-control" placeholder="Prep Time">
+    <input id="totalTimeInput" type="text" class="form-control" placeholder="Total Time">
+    <input id="authorInput" type="text" class="form-control" placeholder="Author">
   </div>
+
+  <!-- TWO COLUMN LAYOUT -->
+  <div style="display:flex; gap:20px; margin-top:20px;">
+
+    <!-- INGREDIENTS LEFT -->
+    <div style="flex:1;">
+      <h3>Ingredients</h3>
+      <table id="ingredientsTable" class="table">
+        <thead>
+          <tr>
+            <th>Qty</th>
+            <th>Unit</th>
+            <th>Name</th>
+            <th>Prep</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary" onclick="addIngredientRow('','','','')">Add Ingredient</button>
+    </div>
+
+    <!-- DIRECTIONS RIGHT -->
+    <div style="flex:1;">
+      <h3>Directions</h3>
+      <textarea id="directionsInput" class="form-control" rows="15"></textarea>
+    </div>
+
+  </div>
+
+  <!-- NOTES -->
+  <h3 style="margin-top:20px;">Notes</h3>
+  <textarea id="notesInput" class="form-control" rows="6"></textarea>
+
+  <!-- SAVE -->
+  <button class="btn primary" style="margin-top:20px;" onclick="saveRecipe()">Save to Recipe Manager</button>
+
+</div>
+
+<!-- DEBUG PANEL -->
+<button id="debugToggle" class="btn secondary">Show Debug</button>
+
+<div id="debugPanel">
+  <h3>Raw OCR</h3>
+  <textarea id="debugRaw"></textarea>
+
+  <h3>Cleaned OCR (editable)</h3>
+  <textarea id="debugCleaned"></textarea>
+  <button id="debugReparse" class="btn">Re‑Parse Ingredients from Cleaned OCR</button>
+
+  <h3>Ingredient Lines</h3>
+  <pre id="debugLines"></pre>
+
+  <h3>Parsed Ingredients (qty/unit/name/prep)</h3>
+  <pre id="debugParsed"></pre>
+</div>
+
 <script>
 /* ========== ELEMENTS ========== */
 const fileInput = document.getElementById('fileInput');
