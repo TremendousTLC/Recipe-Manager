@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 08</title>
+  <title>Capture Recipe 09</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -235,494 +235,6 @@
   </div>
 
 <script>
-/* ========== ELEMENTS ========== */
-const fileInput = document.getElementById('fileInput');
-const preview = document.getElementById('preview');
-const runOCR = document.getElementById('runOCR');
-const output = document.getElementById('output');
-const jsonOutput = document.getElementById('jsonOutput');
-const saveBtn = document.getElementById('saveRecipe');
-const showJsonBtn = document.getElementById('showJson');
-
-const nameInput = document.getElementById('recipeName');
-const categoryInput = document.getElementById('recipeCategory');
-const directionsInput = document.getElementById('recipeDirections');
-const notesInput = document.getElementById('recipeNotes');
-
-const debugToggle = document.getElementById('debugToggle');
-const debugPanel = document.getElementById('debugPanel');
-const debugRaw = document.getElementById('debugRaw');
-const debugCleaned = document.getElementById('debugCleaned');
-const debugLines = document.getElementById('debugLines');
-const debugParsed = document.getElementById('debugParsed');
-const debugReparse = document.getElementById('debugReparse');
-
-let selectedImage = null;
-let lastRawOCR = "";
-
-/* ========== IMAGE LOAD ========== */
-fileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    selectedImage = reader.result;
-    preview.src = reader.result;
-    preview.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-});
-
-/* ========== HELPERS ========== */
-
-// Normalize fractions and some known OCR quirks
-function normalizeFractions(text) {
-  text = text.replace(/3\/41/g, "3/4 to 1");
-  text = text.replace(/13%/g, "1 1/2");
-
-  text = text.replace(/½/g, "1/2");
-  text = text.replace(/¼/g, "1/4");
-  text = text.replace(/¾/g, "3/4");
-
-  return text;
-}
-
-// Fix merged numbers/words and some merged words
-function fixSpacing(text) {
-  text = text.replace(/(\d)([A-Za-z])/g, "$1 $2");
-  text = text.replace(/([a-z])([A-Z])/g, "$1 $2");
-  text = text.replace(/oilfor/gi, "Oil for");
-  text = text.replace(/forfrying/gi, "for frying");
-  return text;
-}
-
-// Clean OCR text aggressively
-function cleanOCRText(text) {
-  text = text.replace(/\r/g, "");
-
-  text = normalizeFractions(text);
-  text = fixSpacing(text);
-
-  // NEW: Fix weird OCR bullet + merged "12jalapenos"
-  text = text.replace(/«\s*(\d+)\s*jalapenos?/i, "\n$1 jalapenos");
-
-  text = text.replace(/[=+%]/g, "\n");
-  text = text.replace(/-\n/g, "");
-  text = text.replace(/[•·●»«]/g, "\n");
-  text = text.replace(/\n{2,}/g, "\n");
-  text = text.replace(/\s{2,}/g, " ");
-
-  return text.trim();
-}
-
-
-function smartSplitIngredients(text) {
-
-  // ALWAYS force a newline after "Ingredients"
-  text = text.replace(/ingredients[:\s]*/i, "Ingredients\n");
-
-  // Force newline before jalapeño counts
-  text = text.replace(/(\d+)\s+jalapeno(s?)\b/gi, "\n$1 jalapeno$2");
-
-  // Produce words fix (jalapenos, onions, garlic, etc.)
-  const produceWords = [
-    "jalapeno","jalapeño","pepper","peppers",
-    "tomato","tomatoes","onion","onions",
-    "garlic","clove","cloves","serrano","habanero"
-  ];
-
-  produceWords.forEach(word => {
-    const regex = new RegExp("(\\d[\\d\\/]*\\s+" + word + "\\b)", "gi");
-    text = text.replace(regex, "\n$1");
-  });
-
-  // Split before qty+unit patterns
-  text = text.replace(/(\d[\d\/\.]*(?:\s+\d[\d\/\.]*)?\s+[a-zA-Z]+\b)/g, "\n$1");
-
-  return text
-    .split("\n")
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
-}
-
-
-// Normalize units (U1)
-function normalizeUnit(unit) {
-  const u = unit.toLowerCase();
-  if (["ounce", "ounces", "oz"].includes(u)) return "oz";
-  if (["pound", "pounds", "lb", "lbs"].includes(u)) return "lb";
-  if (["teaspoon", "teaspoons", "tsp"].includes(u)) return "tsp";
-  if (["tablespoon", "tablespoons", "tbsp", "tbs"].includes(u)) return "tbsp";
-  if (["cup", "cups"].includes(u)) return "cup";
-  if (["strip", "strips"].includes(u)) return "strip";
-  if (["clove", "cloves"].includes(u)) return "clove";
-  if (["slice", "slices"].includes(u)) return "slice";
-  if (["block", "blocks"].includes(u)) return "block";
-  return unit;
-}
-
-// Extract prep words (P2)
-function extractPrep(name) {
-  const prepWords = [
-    "softened","chopped","shredded","minced","beaten",
-    "diced","sliced","peeled","grated","crushed"
-  ];
-
-  let words = name.split(" ").filter(w => w.length > 0);
-  let prep = [];
-
-  while (words.length > 0) {
-    const last = words[words.length - 1].toLowerCase();
-    if (prepWords.includes(last)) {
-      prep.unshift(words.pop());
-    } else {
-      break;
-    }
-  }
-
-  return {
-    name: words.join(" "),
-    prep: prep.join(" ")
-  };
-}
-// Parse a single ingredient line into qty/unit/name/prep
-function parseIngredient(line) {
-
-  // Special case: Oil for frying (Option C)
-  if (/oil\s+for\s+frying/i.test(line)) {
-    return {
-      qty: "as needed",
-      unit: "",
-      name: "Oil",
-      prep: "for frying"
-    };
-  }
-
-  let qty = "";
-  let unit = "";
-  let name = line;
-  let prep = "";
-
-  // Match qty (including ranges)
-  const qtyMatch = line.match(/^(\d+(?:\s+\d+\/\d+)?|\d+\/\d+)(?:\s+to\s+(\d+(?:\s+\d+\/\d+)?|\d+\/\d+))?\s+(.*)$/);
-  if (qtyMatch) {
-    qty = qtyMatch[2] ? qtyMatch[1] + " to " + qtyMatch[2] : qtyMatch[1];
-    name = qtyMatch[3];
-  } else {
-    return { qty: "", unit: "", name: line, prep: "" };
-  }
-
-  // Extract unit
-  let parts = name.split(" ").filter(w => w.length > 0);
-  if (parts.length > 0) {
-    unit = parts.shift();
-    name = parts.join(" ");
-  }
-
-  // MU4: cream cheese block handling
-  if (/cream\s+cheese/i.test(line) && /block/i.test(line)) {
-    unit = "block";
-    name = /8\s*oz|8\s*ounce|8-ounce/i.test(line)
-      ? "8 oz cream cheese"
-      : "cream cheese";
-  }
-
-  unit = normalizeUnit(unit);
-
-  // Extract prep (P2)
-  const prepResult = extractPrep(name);
-  name = prepResult.name;
-  prep = prepResult.prep;
-
-  return { qty, unit, name, prep };
-}
-
-
-/* ========== INGREDIENT TABLE HELPERS ========== */
-function addIngredientRow(qty = "", unit = "", name = "", prep = "") {
-  const tbody = document.querySelector("#ingredientsTable tbody");
-
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td><input class="ing-qty" value="${qty}"></td>
-    <td><input class="ing-unit" value="${unit}"></td>
-    <td><input class="ing-name" value="${name}"></td>
-    <td><input class="ing-prep" value="${prep}"></td>
-    <td><button class="btn secondary removeRow">X</button></td>
-  `;
-
-  tbody.appendChild(tr);
-
-  tr.querySelector(".removeRow").addEventListener("click", () => {
-    tr.remove();
-  });
-}
-
-document.getElementById("addIngredient").addEventListener("click", () => {
-  addIngredientRow();
-});
-
-/* ========== RECIPE PARSER ========== */
-function extractRecipe(text) {
-  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-
-  let recipe = {
-    name: "",
-    details: {},
-    ingredients: [],
-    directions: [],
-    notes: []
-  };
-
-  let mode = null;
-
-  for (const line of lines) {
-    const upper = line.toUpperCase();
-
-    // TITLE
-    if (upper.startsWith("TITLE:")) {
-      recipe.name = line.substring(6).trim();
-      continue;
-    }
-
-    // DETAILS block
-    if (upper.startsWith("DETAILS")) {
-      mode = "details";
-      continue;
-    }
-
-    // INGREDIENTS block
-    if (upper.startsWith("INGREDIENTS")) {
-      mode = "ingredients";
-      continue;
-    }
-
-    // DIRECTIONS block
-    if (upper.startsWith("DIRECTIONS")) {
-      mode = "directions";
-      continue;
-    }
-
-    // NOTES block
-    if (upper.startsWith("NOTES")) {
-      mode = "notes";
-      continue;
-    }
-
-    // DETAILS key/value pairs
-    if (mode === "details") {
-      const [key, value] = line.split(":");
-      if (key && value) {
-        recipe.details[key.trim().toUpperCase()] = value.trim();
-      }
-      continue;
-    }
-
-    // INGREDIENTS lines → send to parseIngredient()
-    if (mode === "ingredients") {
-      recipe.ingredients.push(line);
-      continue;
-    }
-
-    // DIRECTIONS lines → strip numbers
-    if (mode === "directions") {
-      recipe.directions.push(line.replace(/^\d+\.\s*/, ""));
-      continue;
-    }
-
-    // NOTES lines
-    if (mode === "notes") {
-      recipe.notes.push(line);
-      continue;
-    }
-  }
-
-  return recipe;
-}
-
-
-/* ========== BUILD RECIPE FROM FORM ========== */
-function buildRecipeFromForm() {
-  const ingredientRows = Array.from(document.querySelectorAll("#ingredientsTable tbody tr"));
-
-  const ingredients = ingredientRows.map(row => ({
-    qty: row.querySelector(".ing-qty").value.trim(),
-    unit: row.querySelector(".ing-unit").value.trim(),
-    name: row.querySelector(".ing-name").value.trim(),
-    prep: row.querySelector(".ing-prep").value.trim()
-  }));
-
-  const directions = directionsInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  const notes = notesInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-
-return {
-  name: nameInput.value.trim(),
-  category: categoryInput.value.trim(),
-  details: {},   // placeholder until UI fields exist
-  ingredients,
-  directions,
-  notes
-};
-}
-/* ========== SAVE TO LOCALSTORAGE ========== */
-function saveRecipeToStorage(recipe) {
-  const KEY = "rcp_recipes";
-
-  let recipes = [];
-  try {
-    const stored = localStorage.getItem(KEY);
-    if (stored) recipes = JSON.parse(stored);
-    if (!Array.isArray(recipes)) recipes = [];
-  } catch {
-    recipes = [];
-  }
-
-  recipes.push(recipe);
-  localStorage.setItem(KEY, JSON.stringify(recipes));
-}
-
-/* ========== FILL FORM FROM CLEANED TEXT ========== */
-function fillFromCleaned(cleanedText) {
-  const extracted = extractRecipe(cleanedText);
-
-  const details = extracted.details || {};
-  console.log("DETAILS:", details);
-
-  nameInput.value = extracted.name || "";
-  categoryInput.value = "";
-
-  const ingLines = extracted.ingredients || [];
-
-  debugLines.textContent = JSON.stringify(ingLines, null, 2);
-
-  document.querySelector("#ingredientsTable tbody").innerHTML = "";
-
-  const parsedList = [];
-
-  ingLines.forEach(line => {
-    const ing = parseIngredient(line);
-    parsedList.push(ing);
-    addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
-  });
-
-  // FULL DEBUG OUTPUT (details + ingredients + directions + notes)
-  debugParsed.textContent = JSON.stringify({
-    details: extracted.details,
-    ingredients: parsedList,
-    directions: extracted.directions,
-    notes: extracted.notes
-  }, null, 2);
-
-  directionsInput.value = (extracted.directions || []).join("\n");
-  notesInput.value = (extracted.notes || []).join("\n");
-}
-
-/* ========== OCR + FILL FORM ========== */
-runOCR.addEventListener('click', async () => {
-  if (!selectedImage) {
-    alert("Please select an image first.");
-    return;
-  }
-
-  output.value = "Processing…";
-
-  const result = await Tesseract.recognize(selectedImage, 'eng', {
-    logger: m => console.log(m)
-  });
-
-  lastRawOCR = result.data.text || "";
-  const cleaned = cleanOCRText(lastRawOCR);
-
-  output.value = cleaned;
-
-  debugRaw.value = lastRawOCR;
-  debugCleaned.value = cleaned;
-
-  fillFromCleaned(cleaned);
-});
-
-/* ========== SHOW JSON ========== */
-showJsonBtn.addEventListener('click', () => {
-  const recipe = buildRecipeFromForm();
-  jsonOutput.style.display = jsonOutput.style.display === "none" ? "block" : "none";
-  jsonOutput.textContent = JSON.stringify(recipe, null, 2);
-});
-
-/* ========== SAVE RECIPE ========== */
-saveBtn.addEventListener('click', () => {
-  const recipe = buildRecipeFromForm();
-
-  if (!recipe.name) {
-    alert("Please enter a recipe name.");
-    return;
-  }
-
-  // SAFETY FEATURE: auto-assign category if missing
-  if (!recipe.category || recipe.category.trim() === "") {
-    recipe.category = "Uncategorized";
-  }
-
-  saveRecipeToStorage(recipe);
-  alert("Recipe saved!");
-});
-
-
-/* ========== DEBUG PANEL ========== */
-debugToggle.addEventListener('click', () => {
-  debugPanel.style.display = debugPanel.style.display === "none" ? "block" : "none";
-});
-
-debugReparse.addEventListener('click', () => {
-  const cleaned = debugCleaned.value;
-  output.value = cleaned;
-  fillFromCleaned(cleaned);
-  
-debugParsed.textContent = JSON.stringify({
-  details: extracted.details,
-  ingredients: parsedList,
-  directions: extracted.directions,
-  notes: extracted.notes
-}, null, 2);
-  
-});
-
-document.addEventListener("dragover", e => {
-  e.preventDefault();
-});
-
-document.addEventListener("drop", e => {
-  e.preventDefault();
-
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    selectedImage = reader.result;
-    preview.src = reader.result;
-    preview.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-});
-
-document.addEventListener("paste", e => {
-  const items = e.clipboardData.items;
-  for (const item of items) {
-    if (item.type.startsWith("image/")) {
-      const blob = item.getAsFile();
-      const reader = new FileReader();
-      reader.onload = () => {
-        selectedImage = reader.result;
-        preview.src = reader.result;
-        preview.style.display = 'block';
-      };
-      reader.readAsDataURL(blob);
-    }
-  }
-});
-
-/* ========== PRESET OVERLAY + REGION-BASED OCR MODULE ========== */
 (() => {
   if (!preview) return;
 
@@ -730,295 +242,115 @@ document.addEventListener("paste", e => {
   let regions = [];
   let activeRegionIndex = null;
   let drawing = false;
-  let dragMode = null; // 'move' or 'resize'
+  let dragMode = null;
   let dragOffsetX = 0, dragOffsetY = 0;
-  let resizeEdge = null; // 'left','right','top','bottom'
+  let resizeEdge = null;
   let startX = 0, startY = 0;
   let currentRect = null;
 
   const TYPE_COLORS = {
-    TITLE: '#1e90ff',       // blue
-    DETAILS: '#2ecc71',     // green
-    INGREDIENTS: '#e74c3c', // red
-    DIRECTIONS: '#e67e22',  // orange
-    NOTES: '#9b59b6'        // purple
+    TITLE: '#1e90ff',
+    DETAILS: '#2ecc71',
+    INGREDIENTS: '#e74c3c',
+    DIRECTIONS: '#e67e22',
+    NOTES: '#9b59b6'
   };
 
   const MAX_PRESETS = 5;
-  let presets = []; // { name, regions: [{xNorm,yNorm,wNorm,hNorm,type}] }
+  let presets = [];
   let activePresetIndex = null;
   let selectedPresetIndex = 0;
 
-  // ---------- WRAP PREVIEW + CANVAS ----------
-  const previewWrapper = document.createElement('div');
-  previewWrapper.style.position = 'relative';
-  previewWrapper.style.display = 'inline-block';
-  preview.parentNode.insertBefore(previewWrapper, preview);
-  previewWrapper.appendChild(preview);
+  // ---------- WRAP PREVIEW ----------
+  const previewWrapper = document.getElementById("previewWrapper");
+  const regionCanvas = document.getElementById("regionCanvas");
+  const ctx = regionCanvas.getContext("2d");
 
-  const regionCanvas = document.createElement('canvas');
-  regionCanvas.id = 'regionCanvas';
-  regionCanvas.style.position = 'absolute';
-  regionCanvas.style.top = '0';
-  regionCanvas.style.left = '0';
-  regionCanvas.style.pointerEvents = 'auto';
-  regionCanvas.style.display = 'none';
-  previewWrapper.appendChild(regionCanvas);
-
-  const ctx = regionCanvas.getContext('2d');
-
-  // ---------- PRESET BAR UI ----------
-  const presetBar = document.createElement('div');
-  presetBar.style.marginTop = '10px';
-  presetBar.style.padding = '6px';
-  presetBar.style.border = '1px solid #ccc';
-  presetBar.style.background = '#f8f8f8';
-
-  const presetTitle = document.createElement('div');
-  presetTitle.textContent = 'Presets';
-  presetTitle.style.fontWeight = 'bold';
-  presetTitle.style.marginBottom = '4px';
-  presetBar.appendChild(presetTitle);
-
-  const presetButtonsRow = document.createElement('div');
-  presetButtonsRow.style.display = 'flex';
-  presetButtonsRow.style.gap = '8px';
-  presetBar.appendChild(presetButtonsRow);
-
+  // ---------- PRESET BAR ----------
+  const presetButtonsRow = document.getElementById("presetButtonsRow");
   const presetButtons = [];
   const presetLabels = [];
 
-  const miniMapPopup = document.createElement('div');
-  miniMapPopup.style.position = 'absolute';
-  miniMapPopup.style.padding = '4px';
-  miniMapPopup.style.background = '#ffffff';
-  miniMapPopup.style.border = '1px solid #999';
-  miniMapPopup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-  miniMapPopup.style.display = 'none';
-  miniMapPopup.style.zIndex = '9999';
-  document.body.appendChild(miniMapPopup);
-
-  const miniCanvas = document.createElement('canvas');
-  miniCanvas.width = 160;
-  miniCanvas.height = 120;
-  miniMapPopup.appendChild(miniCanvas);
-  const miniCtx = miniCanvas.getContext('2d');
+  const miniMapPopup = document.getElementById("miniMapPopup");
+  const miniCanvas = document.getElementById("miniMapCanvas");
+  const miniCtx = miniCanvas.getContext("2d");
 
   function buildPresetButtons() {
     for (let i = 0; i < MAX_PRESETS; i++) {
-      const btnWrapper = document.createElement('div');
-      btnWrapper.style.display = 'flex';
-      btnWrapper.style.flexDirection = 'column';
-      btnWrapper.style.alignItems = 'center';
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "center";
 
-      const btn = document.createElement('button');
+      const btn = document.createElement("button");
       btn.textContent = `Preset ${i + 1}`;
-      btn.className = 'btn secondary';
-      btn.style.minWidth = '90px';
+      btn.className = "btn secondary";
       btn.dataset.index = i;
 
-      const label = document.createElement('div');
-      label.textContent = '(empty)';
-      label.style.fontSize = '11px';
-      label.style.marginTop = '2px';
+      const label = document.createElement("div");
+      label.textContent = "(empty)";
+      label.style.fontSize = "11px";
+      label.style.marginTop = "2px";
 
-      btnWrapper.appendChild(btn);
-      btnWrapper.appendChild(label);
-      presetButtonsRow.appendChild(btnWrapper);
+      wrap.appendChild(btn);
+      wrap.appendChild(label);
+      presetButtonsRow.appendChild(wrap);
 
       presetButtons.push(btn);
       presetLabels.push(label);
 
-      btn.addEventListener('click', () => {
+      btn.addEventListener("click", () => {
         selectedPresetIndex = i;
         loadPreset(i);
       });
 
-      btn.addEventListener('mouseenter', e => {
-        showMiniMapForPreset(i, e);
-      });
-
-      btn.addEventListener('mouseleave', () => {
-        miniMapPopup.style.display = 'none';
-      });
+      btn.addEventListener("mouseenter", e => showMiniMap(i, e));
+      btn.addEventListener("mouseleave", () => miniMapPopup.style.display = "none");
     }
   }
 
   buildPresetButtons();
 
-  function updatePresetButtonsHighlight() {
-    presetButtons.forEach((btn, i) => {
-      if (i === activePresetIndex) {
-        btn.style.border = '2px solid #1e90ff';
-        btn.style.background = '#e6f3ff';
-      } else {
-        btn.style.border = '';
-        btn.style.background = '';
-      }
-    });
-  }
-
-  function showMiniMapForPreset(index, evt) {
+  function showMiniMap(index, evt) {
     const preset = presets[index];
-    if (!preset || !preset.regions || preset.regions.length === 0) {
-      miniMapPopup.style.display = 'none';
-      return;
-    }
+    if (!preset || !preset.regions.length) return;
 
     const rect = evt.target.getBoundingClientRect();
-    miniMapPopup.style.left = (rect.left) + 'px';
-    miniMapPopup.style.top = (rect.bottom + 4) + 'px';
-    miniMapPopup.style.display = 'block';
+    miniMapPopup.style.left = rect.left + "px";
+    miniMapPopup.style.top = rect.bottom + 4 + "px";
+    miniMapPopup.style.display = "block";
 
     miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-    miniCtx.lineWidth = 2;
 
     preset.regions.forEach(r => {
       const x = r.xNorm * miniCanvas.width;
       const y = r.yNorm * miniCanvas.height;
       const w = r.wNorm * miniCanvas.width;
       const h = r.hNorm * miniCanvas.height;
-      miniCtx.strokeStyle = TYPE_COLORS[r.type] || '#000';
+      miniCtx.strokeStyle = TYPE_COLORS[r.type];
       miniCtx.strokeRect(x, y, w, h);
     });
   }
 
-  const presetControlsRow = document.createElement('div');
-  presetControlsRow.style.marginTop = '6px';
-  presetControlsRow.style.display = 'flex';
-  presetControlsRow.style.gap = '6px';
-
-  const savePresetBtn = document.createElement('button');
-  savePresetBtn.textContent = 'Save Preset';
-  savePresetBtn.className = 'btn secondary';
-
-  const renamePresetBtn = document.createElement('button');
-  renamePresetBtn.textContent = 'Rename Preset';
-  renamePresetBtn.className = 'btn secondary';
-
-  const deletePresetBtn = document.createElement('button');
-  deletePresetBtn.textContent = 'Delete Preset';
-  deletePresetBtn.className = 'btn secondary';
-
-  presetControlsRow.appendChild(savePresetBtn);
-  presetControlsRow.appendChild(renamePresetBtn);
-  presetControlsRow.appendChild(deletePresetBtn);
-  presetBar.appendChild(presetControlsRow);
-
-  previewWrapper.parentNode.insertBefore(presetBar, previewWrapper.nextSibling);
-
   // ---------- REGION CONTROLS ----------
-  const regionControls = document.createElement('div');
-  regionControls.style.marginTop = '10px';
+  const addRegionBtn = document.getElementById("addRegionBtn");
+  const runRegionBtn = document.getElementById("runRegionBtn");
+  const regionList = document.getElementById("regionList");
 
-  const addRegionBtn = document.createElement('button');
-  addRegionBtn.textContent = 'Add Region';
-  addRegionBtn.className = 'btn secondary';
-
-  const runRegionBtn = document.createElement('button');
-  runRegionBtn.textContent = 'Run Region OCR';
-  runRegionBtn.className = 'btn secondary';
-
-  const regionList = document.createElement('pre');
-  regionList.style.background = '#fff';
-  regionList.style.border = '1px solid #ccc';
-  regionList.style.padding = '6px';
-  regionList.style.marginTop = '6px';
-  regionList.style.maxHeight = '120px';
-  regionList.style.overflowY = 'auto';
-
-  const legend = document.createElement('div');
-  legend.style.marginTop = '6px';
-  legend.style.fontSize = '12px';
-
-  function buildLegend() {
-    legend.innerHTML = '';
-    Object.keys(TYPE_COLORS).forEach(type => {
-      const item = document.createElement('div');
-      item.style.display = 'inline-block';
-      item.style.marginRight = '10px';
-
-      const swatch = document.createElement('span');
-      swatch.style.display = 'inline-block';
-      swatch.style.width = '12px';
-      swatch.style.height = '12px';
-      swatch.style.background = TYPE_COLORS[type];
-      swatch.style.marginRight = '4px';
-      swatch.style.border = '1px solid #333';
-
-      const label = document.createElement('span');
-      label.textContent = type.charAt(0) + type.slice(1).toLowerCase();
-
-      item.appendChild(swatch);
-      item.appendChild(label);
-      legend.appendChild(item);
-    });
-  }
-
-  buildLegend();
-
-  regionControls.appendChild(addRegionBtn);
-  regionControls.appendChild(runRegionBtn);
-  regionControls.appendChild(regionList);
-  regionControls.appendChild(legend);
-  previewWrapper.parentNode.insertBefore(regionControls, presetBar.nextSibling);
+  addRegionBtn.addEventListener("click", () => {
+    drawing = true;
+    currentRect = null;
+    regionCanvas.style.cursor = "crosshair";
+  });
 
   function updateRegionList() {
     regionList.textContent = regions.map((r, i) =>
       `${i + 1}. ${r.type} @ x=${Math.round(r.x)}, y=${Math.round(r.y)}, w=${Math.round(r.w)}, h=${Math.round(r.h)}`
-    ).join('\n');
+    ).join("\n");
   }
 
-  // ---------- DRAWING + DRAGGING + RESIZING ----------
-  function redrawRegions() {
-    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
-    regions.forEach((r, i) => {
-      ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
-      ctx.strokeStyle = TYPE_COLORS[r.type] || 'red';
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-    });
-    if (currentRect) {
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffff00';
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
-    }
-  }
-
-  function findRegionAtPoint(x, y) {
-    for (let i = regions.length - 1; i >= 0; i--) {
-      const r = regions[i];
-      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  function findResizeEdge(r, x, y) {
-    const margin = 8;
-    const onLeft = Math.abs(x - r.x) <= margin;
-    const onRight = Math.abs(x - (r.x + r.w)) <= margin;
-    const onTop = Math.abs(y - r.y) <= margin;
-    const onBottom = Math.abs(y - (r.y + r.h)) <= margin;
-
-    if (onLeft) return 'left';
-    if (onRight) return 'right';
-    if (onTop) return 'top';
-    if (onBottom) return 'bottom';
-    return null;
-  }
-
-  addRegionBtn.addEventListener('click', () => {
-    if (!selectedImage) {
-      alert('Load an image first.');
-      return;
-    }
-    drawing = true;
-    currentRect = null;
-    regionCanvas.style.cursor = 'crosshair';
-  });
-
-  regionCanvas.addEventListener('mousedown', e => {
+  // ---------- DRAWING ----------
+  regionCanvas.addEventListener("mousedown", e => {
     const rect = regionCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -1026,36 +358,37 @@ document.addEventListener("paste", e => {
     if (drawing) {
       startX = x;
       startY = y;
-      currentRect = { x: startX, y: startY, w: 0, h: 0 };
-      redrawRegions();
+      currentRect = { x, y, w: 0, h: 0 };
+      redraw();
       return;
     }
 
-    const idx = findRegionAtPoint(x, y);
+    const idx = findRegionAt(x, y);
     if (idx !== null) {
       activeRegionIndex = idx;
       const r = regions[idx];
       const edge = findResizeEdge(r, x, y);
+
       if (edge) {
-        dragMode = 'resize';
+        dragMode = "resize";
         resizeEdge = edge;
         dragOffsetX = x;
         dragOffsetY = y;
       } else {
-        dragMode = 'move';
+        dragMode = "move";
         dragOffsetX = x - r.x;
         dragOffsetY = y - r.y;
       }
-      redrawRegions();
+      redraw();
     } else {
       activeRegionIndex = null;
       dragMode = null;
       resizeEdge = null;
-      redrawRegions();
+      redraw();
     }
   });
 
-  regionCanvas.addEventListener('mousemove', e => {
+  regionCanvas.addEventListener("mousemove", e => {
     const rect = regionCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -1063,102 +396,117 @@ document.addEventListener("paste", e => {
     if (drawing && currentRect) {
       currentRect.w = x - startX;
       currentRect.h = y - startY;
-      redrawRegions();
+      redraw();
       return;
     }
 
     if (dragMode && activeRegionIndex !== null) {
       const r = regions[activeRegionIndex];
-      if (dragMode === 'move') {
+
+      if (dragMode === "move") {
         r.x = x - dragOffsetX;
         r.y = y - dragOffsetY;
-      } else if (dragMode === 'resize') {
-        if (resizeEdge === 'right') {
-          r.w = x - r.x;
-        } else if (resizeEdge === 'left') {
+      } else if (dragMode === "resize") {
+        if (resizeEdge === "right") r.w = x - r.x;
+        if (resizeEdge === "left") {
           const oldRight = r.x + r.w;
           r.x = x;
           r.w = oldRight - r.x;
-        } else if (resizeEdge === 'bottom') {
-          r.h = y - r.y;
-        } else if (resizeEdge === 'top') {
+        }
+        if (resizeEdge === "bottom") r.h = y - r.y;
+        if (resizeEdge === "top") {
           const oldBottom = r.y + r.h;
           r.y = y;
           r.h = oldBottom - r.y;
         }
       }
-      redrawRegions();
+
+      redraw();
       updateRegionList();
     }
   });
 
-  regionCanvas.addEventListener('mouseup', () => {
+  regionCanvas.addEventListener("mouseup", () => {
     if (drawing && currentRect) {
       drawing = false;
-      regionCanvas.style.cursor = 'default';
+      regionCanvas.style.cursor = "default";
 
       let { x, y, w, h } = currentRect;
       if (w < 0) { x += w; w = -w; }
       if (h < 0) { y += h; h = -h; }
 
-      const type = prompt('Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):', 'INGREDIENTS');
-      if (!type) {
-        currentRect = null;
-        redrawRegions();
-        return;
+      const type = prompt("Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):", "INGREDIENTS");
+      if (type) {
+        regions.push({ x, y, w, h, type: type.toUpperCase() });
+        updateRegionList();
       }
 
-      regions.push({ x, y, w, h, type: type.toUpperCase() });
       currentRect = null;
-      redrawRegions();
-      updateRegionList();
+      redraw();
     }
 
     dragMode = null;
     resizeEdge = null;
   });
 
-  // ---------- PRESETS STORAGE ----------
-  function loadPresetsFromStorage() {
-    try {
-      const raw = localStorage.getItem('ocrPresetsV1');
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      if (Array.isArray(data)) {
-        presets = data;
-      }
-    } catch (e) {
-      console.error('Error loading presets:', e);
+  function redraw() {
+    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+
+    regions.forEach((r, i) => {
+      ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
+      ctx.strokeStyle = TYPE_COLORS[r.type];
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    });
+
+    if (currentRect) {
+      ctx.strokeStyle = "#ffff00";
+      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
     }
   }
 
-  function savePresetsToStorage() {
-    try {
-      localStorage.setItem('ocrPresetsV1', JSON.stringify(presets));
-    } catch (e) {
-      console.error('Error saving presets:', e);
+  function findRegionAt(x, y) {
+    for (let i = regions.length - 1; i >= 0; i--) {
+      const r = regions[i];
+      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return i;
     }
+    return null;
+  }
+
+  function findResizeEdge(r, x, y) {
+    const m = 8;
+    if (Math.abs(x - r.x) <= m) return "left";
+    if (Math.abs(x - (r.x + r.w)) <= m) return "right";
+    if (Math.abs(y - r.y) <= m) return "top";
+    if (Math.abs(y - (r.y + r.h)) <= m) return "bottom";
+    return null;
+  }
+
+  // ---------- PRESETS ----------
+  function loadPresetsFromStorage() {
+    try {
+      const raw = localStorage.getItem("ocrPresetsV1");
+      if (raw) presets = JSON.parse(raw);
+    } catch {}
+  }
+
+  function savePresetsToStorage() {
+    localStorage.setItem("ocrPresetsV1", JSON.stringify(presets));
   }
 
   function ensurePresetSlots() {
     while (presets.length < MAX_PRESETS) {
-      presets.push({ name: '', regions: [] });
+      presets.push({ name: "", regions: [] });
     }
   }
 
   function updatePresetLabels() {
     ensurePresetSlots();
     for (let i = 0; i < MAX_PRESETS; i++) {
-      const p = presets[i];
-      if (p && p.name) {
-        presetLabels[i].textContent = p.name;
-      } else {
-        presetLabels[i].textContent = '(empty)';
-      }
+      presetLabels[i].textContent = presets[i].name || "(empty)";
     }
   }
 
-  function normalizeRegionsForPreset() {
+  function normalizeRegions() {
     const w = regionCanvas.width;
     const h = regionCanvas.height;
     return regions.map(r => ({
@@ -1170,9 +518,10 @@ document.addEventListener("paste", e => {
     }));
   }
 
-  function applyPresetRegions(preset) {
+  function applyPreset(preset) {
     const w = regionCanvas.width;
     const h = regionCanvas.height;
+
     regions = preset.regions.map(r => ({
       x: r.xNorm * w,
       y: r.yNorm * h,
@@ -1180,92 +529,42 @@ document.addEventListener("paste", e => {
       h: r.hNorm * h,
       type: r.type
     }));
-    activeRegionIndex = null;
-    redrawRegions();
+
+    redraw();
     updateRegionList();
   }
 
   function loadPreset(index) {
     ensurePresetSlots();
     const preset = presets[index];
-    if (!preset || !preset.regions || preset.regions.length === 0) {
+
+    if (!preset || !preset.regions.length) {
       regions = [];
-      activeRegionIndex = null;
-      redrawRegions();
+      redraw();
       updateRegionList();
-      activePresetIndex = null;
-      updatePresetButtonsHighlight();
       return;
     }
-    applyPresetRegions(preset);
+
+    applyPreset(preset);
     activePresetIndex = index;
-    updatePresetButtonsHighlight();
   }
 
-  savePresetBtn.addEventListener('click', () => {
-    if (!regionCanvas.width || !regionCanvas.height) {
-      alert('Image not loaded yet.');
-      return;
-    }
-    ensurePresetSlots();
-    const name = prompt('Preset name:', presets[selectedPresetIndex]?.name || '');
-    if (!name) return;
-
-    presets[selectedPresetIndex] = {
-      name,
-      regions: normalizeRegionsForPreset()
-    };
-    savePresetsToStorage();
-    updatePresetLabels();
-    activePresetIndex = selectedPresetIndex;
-    updatePresetButtonsHighlight();
-  });
-
-  renamePresetBtn.addEventListener('click', () => {
-    ensurePresetSlots();
-    const preset = presets[selectedPresetIndex];
-    if (!preset || !preset.regions || preset.regions.length === 0) {
-      alert('No preset saved in this slot yet.');
-      return;
-    }
-    const name = prompt('New preset name:', preset.name || '');
-    if (!name) return;
-    preset.name = name;
-    savePresetsToStorage();
-    updatePresetLabels();
-  });
-
-  deletePresetBtn.addEventListener('click', () => {
-    ensurePresetSlots();
-    presets[selectedPresetIndex] = { name: '', regions: [] };
-    savePresetsToStorage();
-    updatePresetLabels();
-    if (activePresetIndex === selectedPresetIndex) {
-      activePresetIndex = null;
-      regions = [];
-      redrawRegions();
-      updateRegionList();
-      updatePresetButtonsHighlight();
-    }
-  });
-
   // ---------- DEFAULT KENT ROLLINS PRESET ----------
-  function initDefaultKentPreset() {
-    // Based on your screenshot: width ≈ 912, height ≈ 1095
+  function initKentPreset() {
     const baseW = 912;
     const baseH = 1095;
 
-    const defaultRegions = [
-      { x: 46,  y: 34,  w: 820, h: 114, type: 'TITLE' },
-      { x: 46,  y: 171, w: 820, h: 114, type: 'DETAILS' },
-      { x: 46,  y: 319, w: 392, h: 513, type: 'INGREDIENTS' },
-      { x: 474, y: 319, w: 392, h: 513, type: 'DIRECTIONS' },
-      { x: 46,  y: 867, w: 820, h: 228, type: 'NOTES' }
+    const def = [
+      { x: 46, y: 34, w: 820, h: 114, type: "TITLE" },
+      { x: 46, y: 171, w: 820, h: 114, type: "DETAILS" },
+      { x: 46, y: 319, w: 392, h: 513, type: "INGREDIENTS" },
+      { x: 474, y: 319, w: 392, h: 513, type: "DIRECTIONS" },
+      { x: 46, y: 867, w: 820, h: 228, type: "NOTES" }
     ];
 
     presets[0] = {
-      name: 'Kent Rollins',
-      regions: defaultRegions.map(r => ({
+      name: "Kent Rollins",
+      regions: def.map(r => ({
         xNorm: r.x / baseW,
         yNorm: r.y / baseH,
         wNorm: r.w / baseW,
@@ -1273,182 +572,34 @@ document.addEventListener("paste", e => {
         type: r.type
       }))
     };
+
     savePresetsToStorage();
     updatePresetLabels();
   }
 
   // ---------- CANVAS RESIZE ----------
-  function resizeCanvasToImage() {
-    if (!preview.naturalWidth || !preview.naturalHeight) return;
+  function resizeCanvas() {
     const rect = preview.getBoundingClientRect();
     regionCanvas.width = rect.width;
     regionCanvas.height = rect.height;
-    regionCanvas.style.width = rect.width + 'px';
-    regionCanvas.style.height = rect.height + 'px';
-    regionCanvas.style.display = 'block';
+    regionCanvas.style.display = "block";
 
-    // Load presets and apply active or default
     loadPresetsFromStorage();
     ensurePresetSlots();
     updatePresetLabels();
 
-    if (presets[0] && presets[0].regions && presets[0].regions.length > 0) {
-      activePresetIndex = 0;
-      applyPresetRegions(presets[0]);
-      updatePresetButtonsHighlight();
+    if (presets[0].regions.length) {
+      applyPreset(presets[0]);
     } else {
-      initDefaultKentPreset();
-      activePresetIndex = 0;
-      applyPresetRegions(presets[0]);
-      updatePresetButtonsHighlight();
+      initKentPreset();
+      applyPreset(presets[0]);
     }
   }
 
-  preview.addEventListener('load', resizeCanvasToImage);
-  if (preview.complete) {
-    resizeCanvasToImage();
-  }
+  preview.addEventListener("load", resizeCanvas);
+  if (preview.complete) resizeCanvas();
 
-  // ---------- REGION OCR ----------
-  async function runRegionOCR() {
-    if (!selectedImage) {
-      alert('Load an image first.');
-      return;
-    }
-    if (regions.length === 0) {
-      alert('No regions defined.');
-      return;
-    }
-    if (!preview.naturalWidth || !preview.naturalHeight) {
-      alert('Image not fully loaded yet.');
-      return;
-    }
-
-    const displayRect = preview.getBoundingClientRect();
-    const scaleX = preview.naturalWidth / displayRect.width;
-    const scaleY = preview.naturalHeight / displayRect.height;
-
-    const regionOCR = {
-      TITLE: '',
-      DETAILS: '',
-      INGREDIENTS: '',
-      DIRECTIONS: '',
-      NOTES: ''
-    };
-
-    runRegionBtn.disabled = true;
-    runRegionBtn.textContent = 'Running Region OCR…';
-
-    for (const r of regions) {
-      const rect = {
-        left: Math.round(r.x * scaleX),
-        top: Math.round(r.y * scaleY),
-        width: Math.round(r.w * scaleX),
-        height: Math.round(r.h * scaleY)
-      };
-
-      try {
-        const result = await Tesseract.recognize(selectedImage, 'eng', { rectangle: rect });
-        const text = (result.data.text || '').trim();
-        if (!text) continue;
-
-        if (regionOCR[r.type]) {
-          regionOCR[r.type] += '\n' + text;
-        } else {
-          regionOCR[r.type] = text;
-        }
-      } catch (err) {
-        console.error('Region OCR error:', err);
-      }
-    }
-
-    runRegionBtn.disabled = false;
-    runRegionBtn.textContent = 'Run Region OCR';
-
-    if (debugPanel && debugCleaned) {
-      debugPanel.style.display = 'block';
-      debugCleaned.value = [
-        'TITLE:\n' + (regionOCR.TITLE || ''),
-        '\nDETAILS:\n' + (regionOCR.DETAILS || ''),
-        '\nINGREDIENTS:\n' + (regionOCR.INGREDIENTS || ''),
-        '\nDIRECTIONS:\n' + (regionOCR.DIRECTIONS || ''),
-        '\nNOTES:\n' + (regionOCR.NOTES || '')
-      ].join('\n');
-    }
-
-    fillFromRegions(regionOCR);
-  }
-
-  runRegionBtn.addEventListener('click', () => {
-    runRegionOCR();
-  });
-
-  // ---------- FILL FORM FROM REGION OCR ----------
-  function fillFromRegions(regionOCR) {
-    // TITLE
-    if (regionOCR.TITLE) {
-      const firstLine = regionOCR.TITLE
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0)[0] || '';
-      nameInput.value = firstLine;
-    }
-
-    // DETAILS (optional: log for now)
-    if (regionOCR.DETAILS) {
-      console.log('DETAILS REGION OCR:\n', regionOCR.DETAILS);
-      // You can later parse servings, prep time, etc. into dedicated inputs.
-    }
-
-// INGREDIENTS (Option A – simple, stable)
-if (regionOCR.INGREDIENTS) {
-  const lines = regionOCR.INGREDIENTS
-    .split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
-
-  const tbody = document.querySelector("#ingredientsTable tbody");
-  tbody.innerHTML = "";
-
-  lines.forEach(line => {
-    // Put the whole ingredient line in the Name column
-    addIngredientRow('', '', line, '');
-  });
-
-  if (debugLines) {
-    debugLines.textContent = JSON.stringify(lines, null, 2);
-  }
-  if (debugParsed) {
-    debugParsed.textContent = JSON.stringify({
-      details: {},
-      ingredients: lines,
-      directions: [],
-      notes: []
-    }, null, 2);
-  }
-}
-
-
-    // DIRECTIONS
-    if (regionOCR.DIRECTIONS) {
-      const dirLines = regionOCR.DIRECTIONS
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-      directionsInput.value = dirLines.join('\n');
-    }
-
-    // NOTES
-    if (regionOCR.NOTES) {
-      const noteLines = regionOCR.NOTES
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-      notesInput.value = noteLines.join('\n');
-    }
-  }
 })();
-
 </script>
 
 </body>
