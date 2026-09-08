@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 02</title>
+  <title>Capture Recipe 03</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -655,6 +655,278 @@ document.addEventListener("paste", e => {
     }
   }
 });
+
+/* ========== REGION-BASED OCR MODULE (OVERLAY ON PREVIEW) ========== */
+(() => {
+  if (!preview) return;
+  let regions = [];
+  let drawing = false;
+  let startX = 0, startY = 0;
+  let currentRect = null;
+
+  // Wrap preview in a positioned container
+  const previewWrapper = document.createElement('div');
+  previewWrapper.style.position = 'relative';
+  previewWrapper.style.display = 'inline-block';
+  preview.parentNode.insertBefore(previewWrapper, preview);
+  previewWrapper.appendChild(preview);
+
+  // Create canvas overlay
+  const regionCanvas = document.createElement('canvas');
+  regionCanvas.id = 'regionCanvas';
+  regionCanvas.style.position = 'absolute';
+  regionCanvas.style.top = '0';
+  regionCanvas.style.left = '0';
+  regionCanvas.style.pointerEvents = 'auto';
+  regionCanvas.style.display = 'none';
+  previewWrapper.appendChild(regionCanvas);
+
+  const ctx = regionCanvas.getContext('2d');
+
+  function resizeCanvasToImage() {
+    if (!preview.naturalWidth || !preview.naturalHeight) return;
+    const rect = preview.getBoundingClientRect();
+    regionCanvas.width = rect.width;
+    regionCanvas.height = rect.height;
+    regionCanvas.style.width = rect.width + 'px';
+    regionCanvas.style.height = rect.height + 'px';
+    regionCanvas.style.display = 'block';
+    redrawRegions();
+  }
+
+  preview.addEventListener('load', resizeCanvasToImage);
+
+  function redrawRegions() {
+    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'red';
+    regions.forEach(r => {
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    });
+    if (currentRect) {
+      ctx.strokeStyle = 'yellow';
+      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+    }
+  }
+
+  // Region controls UI
+  const regionControls = document.createElement('div');
+  regionControls.style.marginTop = '10px';
+
+  const addRegionBtn = document.createElement('button');
+  addRegionBtn.textContent = 'Add Region';
+  addRegionBtn.className = 'btn secondary';
+
+  const runRegionBtn = document.createElement('button');
+  runRegionBtn.textContent = 'Run Region OCR';
+  runRegionBtn.className = 'btn secondary';
+
+  const regionList = document.createElement('pre');
+  regionList.style.background = '#fff';
+  regionList.style.border = '1px solid #ccc';
+  regionList.style.padding = '6px';
+  regionList.style.marginTop = '6px';
+  regionList.style.maxHeight = '120px';
+  regionList.style.overflowY = 'auto';
+
+  regionControls.appendChild(addRegionBtn);
+  regionControls.appendChild(runRegionBtn);
+  regionControls.appendChild(regionList);
+  previewWrapper.parentNode.insertBefore(regionControls, previewWrapper.nextSibling);
+
+  function updateRegionList() {
+    regionList.textContent = regions.map((r, i) =>
+      `${i + 1}. ${r.type} @ x=${Math.round(r.x)}, y=${Math.round(r.y)}, w=${Math.round(r.w)}, h=${Math.round(r.h)}`
+    ).join('\n');
+  }
+
+  // Drawing logic
+  addRegionBtn.addEventListener('click', () => {
+    if (!selectedImage) {
+      alert('Load an image first.');
+      return;
+    }
+    resizeCanvasToImage();
+    drawing = true;
+    currentRect = null;
+    regionCanvas.style.cursor = 'crosshair';
+  });
+
+  regionCanvas.addEventListener('mousedown', e => {
+    if (!drawing) return;
+    const rect = regionCanvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    currentRect = { x: startX, y: startY, w: 0, h: 0 };
+    redrawRegions();
+  });
+
+  regionCanvas.addEventListener('mousemove', e => {
+    if (!drawing || !currentRect) return;
+    const rect = regionCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    currentRect.w = x - startX;
+    currentRect.h = y - startY;
+    redrawRegions();
+  });
+
+  regionCanvas.addEventListener('mouseup', () => {
+    if (!drawing || !currentRect) return;
+    drawing = false;
+    regionCanvas.style.cursor = 'default';
+
+    // Normalize width/height to positive
+    let { x, y, w, h } = currentRect;
+    if (w < 0) { x += w; w = -w; }
+    if (h < 0) { y += h; h = -h; }
+
+    const type = prompt('Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):', 'INGREDIENTS');
+    if (!type) {
+      currentRect = null;
+      redrawRegions();
+      return;
+    }
+
+    regions.push({ x, y, w, h, type: type.toUpperCase() });
+    currentRect = null;
+    redrawRegions();
+    updateRegionList();
+  });
+
+  // OCR per region
+  async function runRegionOCR() {
+    if (!selectedImage) {
+      alert('Load an image first.');
+      return;
+    }
+    if (regions.length === 0) {
+      alert('Add at least one region.');
+      return;
+    }
+    if (!preview.naturalWidth || !preview.naturalHeight) {
+      alert('Image not fully loaded yet.');
+      return;
+    }
+
+    const displayRect = preview.getBoundingClientRect();
+    const scaleX = preview.naturalWidth / displayRect.width;
+    const scaleY = preview.naturalHeight / displayRect.height;
+
+    const regionOCR = {
+      TITLE: '',
+      DETAILS: '',
+      INGREDIENTS: '',
+      DIRECTIONS: '',
+      NOTES: ''
+    };
+
+    runRegionBtn.disabled = true;
+    runRegionBtn.textContent = 'Running Region OCR…';
+
+    for (const r of regions) {
+      const rect = {
+        left: Math.round(r.x * scaleX),
+        top: Math.round(r.y * scaleY),
+        width: Math.round(r.w * scaleX),
+        height: Math.round(r.h * scaleY)
+      };
+
+      try {
+        const result = await Tesseract.recognize(selectedImage, 'eng', { rectangle: rect });
+        const text = (result.data.text || '').trim();
+        if (!text) continue;
+
+        if (regionOCR[r.type]) {
+          regionOCR[r.type] += '\n' + text;
+        } else {
+          regionOCR[r.type] = text;
+        }
+      } catch (err) {
+        console.error('Region OCR error:', err);
+      }
+    }
+
+    runRegionBtn.disabled = false;
+    runRegionBtn.textContent = 'Run Region OCR';
+
+    // Debug: show region OCR in debug panel if available
+    if (debugPanel && debugCleaned && debugLines && debugParsed) {
+      debugPanel.style.display = 'block';
+      debugCleaned.value = [
+        'TITLE:\n' + (regionOCR.TITLE || ''),
+        '\nDETAILS:\n' + (regionOCR.DETAILS || ''),
+        '\nINGREDIENTS:\n' + (regionOCR.INGREDIENTS || ''),
+        '\nDIRECTIONS:\n' + (regionOCR.DIRECTIONS || ''),
+        '\nNOTES:\n' + (regionOCR.NOTES || '')
+      ].join('\n');
+    }
+
+    fillFromRegions(regionOCR);
+  }
+
+  runRegionBtn.addEventListener('click', () => {
+    runRegionOCR();
+  });
+
+  // Fill form from region OCR
+  function fillFromRegions(regionOCR) {
+    // TITLE
+    if (regionOCR.TITLE) {
+      const firstLine = regionOCR.TITLE.split('\n').map(l => l.trim()).filter(l => l.length > 0)[0] || '';
+      nameInput.value = firstLine;
+    }
+
+    // DETAILS (optional, just log for now)
+    if (regionOCR.DETAILS) {
+      console.log('DETAILS REGION OCR:\n', regionOCR.DETAILS);
+    }
+
+    // INGREDIENTS
+    if (regionOCR.INGREDIENTS) {
+      const lines = regionOCR.INGREDIENTS
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      document.querySelector("#ingredientsTable tbody").innerHTML = "";
+      const parsedList = [];
+
+      lines.forEach(line => {
+        const ing = parseIngredient(line);
+        parsedList.push(ing);
+        addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
+      });
+
+      debugLines.textContent = JSON.stringify(lines, null, 2);
+      debugParsed.textContent = JSON.stringify({
+        details: {},
+        ingredients: parsedList,
+        directions: [],
+        notes: []
+      }, null, 2);
+    }
+
+    // DIRECTIONS
+    if (regionOCR.DIRECTIONS) {
+      const dirLines = regionOCR.DIRECTIONS
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+      directionsInput.value = dirLines.join('\n');
+    }
+
+    // NOTES
+    if (regionOCR.NOTES) {
+      const noteLines = regionOCR.NOTES
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+      notesInput.value = noteLines.join('\n');
+    }
+  }
+})();
+
 
 </script>
 
