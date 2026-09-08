@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 04</title>
+  <title>Capture Recipe 05</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -656,12 +656,17 @@ document.addEventListener("paste", e => {
   }
 });
 
-/* ========== PRESET REGION-BASED OCR MODULE (OVERLAY ON PREVIEW) ========== */
+/* ========== PRESET OVERLAY + REGION-BASED OCR MODULE ========== */
 (() => {
   if (!preview) return;
 
+  // ---------- GLOBAL STATE ----------
   let regions = [];
+  let activeRegionIndex = null;
   let drawing = false;
+  let dragMode = null; // 'move' or 'resize'
+  let dragOffsetX = 0, dragOffsetY = 0;
+  let resizeEdge = null; // 'left','right','top','bottom'
   let startX = 0, startY = 0;
   let currentRect = null;
 
@@ -673,14 +678,18 @@ document.addEventListener("paste", e => {
     NOTES: '#9b59b6'        // purple
   };
 
-  // Wrap preview in a positioned container
+  const MAX_PRESETS = 5;
+  let presets = []; // { name, regions: [{xNorm,yNorm,wNorm,hNorm,type}] }
+  let activePresetIndex = null;
+  let selectedPresetIndex = 0;
+
+  // ---------- WRAP PREVIEW + CANVAS ----------
   const previewWrapper = document.createElement('div');
   previewWrapper.style.position = 'relative';
   previewWrapper.style.display = 'inline-block';
   preview.parentNode.insertBefore(previewWrapper, preview);
   previewWrapper.appendChild(preview);
 
-  // Canvas overlay
   const regionCanvas = document.createElement('canvas');
   regionCanvas.id = 'regionCanvas';
   regionCanvas.style.position = 'absolute';
@@ -692,104 +701,147 @@ document.addEventListener("paste", e => {
 
   const ctx = regionCanvas.getContext('2d');
 
-  function redrawRegions() {
-    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
-    regions.forEach(r => {
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = TYPE_COLORS[r.type] || 'red';
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-    });
-    if (currentRect) {
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffff00';
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+  // ---------- PRESET BAR UI ----------
+  const presetBar = document.createElement('div');
+  presetBar.style.marginTop = '10px';
+  presetBar.style.padding = '6px';
+  presetBar.style.border = '1px solid #ccc';
+  presetBar.style.background = '#f8f8f8';
+
+  const presetTitle = document.createElement('div');
+  presetTitle.textContent = 'Presets';
+  presetTitle.style.fontWeight = 'bold';
+  presetTitle.style.marginBottom = '4px';
+  presetBar.appendChild(presetTitle);
+
+  const presetButtonsRow = document.createElement('div');
+  presetButtonsRow.style.display = 'flex';
+  presetButtonsRow.style.gap = '8px';
+  presetBar.appendChild(presetButtonsRow);
+
+  const presetButtons = [];
+  const presetLabels = [];
+
+  const miniMapPopup = document.createElement('div');
+  miniMapPopup.style.position = 'absolute';
+  miniMapPopup.style.padding = '4px';
+  miniMapPopup.style.background = '#ffffff';
+  miniMapPopup.style.border = '1px solid #999';
+  miniMapPopup.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  miniMapPopup.style.display = 'none';
+  miniMapPopup.style.zIndex = '9999';
+  document.body.appendChild(miniMapPopup);
+
+  const miniCanvas = document.createElement('canvas');
+  miniCanvas.width = 160;
+  miniCanvas.height = 120;
+  miniMapPopup.appendChild(miniCanvas);
+  const miniCtx = miniCanvas.getContext('2d');
+
+  function buildPresetButtons() {
+    for (let i = 0; i < MAX_PRESETS; i++) {
+      const btnWrapper = document.createElement('div');
+      btnWrapper.style.display = 'flex';
+      btnWrapper.style.flexDirection = 'column';
+      btnWrapper.style.alignItems = 'center';
+
+      const btn = document.createElement('button');
+      btn.textContent = `Preset ${i + 1}`;
+      btn.className = 'btn secondary';
+      btn.style.minWidth = '90px';
+      btn.dataset.index = i;
+
+      const label = document.createElement('div');
+      label.textContent = '(empty)';
+      label.style.fontSize = '11px';
+      label.style.marginTop = '2px';
+
+      btnWrapper.appendChild(btn);
+      btnWrapper.appendChild(label);
+      presetButtonsRow.appendChild(btnWrapper);
+
+      presetButtons.push(btn);
+      presetLabels.push(label);
+
+      btn.addEventListener('click', () => {
+        selectedPresetIndex = i;
+        loadPreset(i);
+      });
+
+      btn.addEventListener('mouseenter', e => {
+        showMiniMapForPreset(i, e);
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        miniMapPopup.style.display = 'none';
+      });
     }
   }
 
-  function createPresetRegions() {
-    regions = [];
-    const w = regionCanvas.width;
-    const h = regionCanvas.height;
+  buildPresetButtons();
 
-    const marginX = w * 0.05;
-    const fullWidth = w * 0.90;
-
-    // TITLE (top)
-    const titleH = h * 0.10;
-    regions.push({
-      x: marginX,
-      y: h * 0.03,
-      w: fullWidth,
-      h: titleH,
-      type: 'TITLE'
+  function updatePresetButtonsHighlight() {
+    presetButtons.forEach((btn, i) => {
+      if (i === activePresetIndex) {
+        btn.style.border = '2px solid #1e90ff';
+        btn.style.background = '#e6f3ff';
+      } else {
+        btn.style.border = '';
+        btn.style.background = '';
+      }
     });
-
-    // DETAILS (under title)
-    const detailsH = h * 0.10;
-    const detailsY = h * 0.03 + titleH + h * 0.02;
-    regions.push({
-      x: marginX,
-      y: detailsY,
-      w: fullWidth,
-      h: detailsH,
-      type: 'DETAILS'
-    });
-
-    // MIDDLE ROW: INGREDIENTS LEFT, DIRECTIONS RIGHT
-    const middleY = detailsY + detailsH + h * 0.03;
-    const middleH = h * 0.45;
-    const colW = fullWidth / 2 - w * 0.02;
-
-    regions.push({
-      x: marginX,
-      y: middleY,
-      w: colW,
-      h: middleH,
-      type: 'INGREDIENTS'
-    });
-
-    regions.push({
-      x: marginX + colW + w * 0.04,
-      y: middleY,
-      w: colW,
-      h: middleH,
-      type: 'DIRECTIONS'
-    });
-
-    // NOTES (bottom)
-    const notesY = middleY + middleH + h * 0.03;
-    const notesH = h * 0.20;
-    regions.push({
-      x: marginX,
-      y: notesY,
-      w: fullWidth,
-      h: notesH,
-      type: 'NOTES'
-    });
-
-    redrawRegions();
-    updateRegionList();
   }
 
-  function resizeCanvasToImage() {
-    if (!preview.naturalWidth || !preview.naturalHeight) return;
-    const rect = preview.getBoundingClientRect();
-    regionCanvas.width = rect.width;
-    regionCanvas.height = rect.height;
-    regionCanvas.style.width = rect.width + 'px';
-    regionCanvas.style.height = rect.height + 'px';
-    regionCanvas.style.display = 'block';
-
-    if (regions.length === 0) {
-      createPresetRegions();
-    } else {
-      redrawRegions();
+  function showMiniMapForPreset(index, evt) {
+    const preset = presets[index];
+    if (!preset || !preset.regions || preset.regions.length === 0) {
+      miniMapPopup.style.display = 'none';
+      return;
     }
+
+    const rect = evt.target.getBoundingClientRect();
+    miniMapPopup.style.left = (rect.left) + 'px';
+    miniMapPopup.style.top = (rect.bottom + 4) + 'px';
+    miniMapPopup.style.display = 'block';
+
+    miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+    miniCtx.lineWidth = 2;
+
+    preset.regions.forEach(r => {
+      const x = r.xNorm * miniCanvas.width;
+      const y = r.yNorm * miniCanvas.height;
+      const w = r.wNorm * miniCanvas.width;
+      const h = r.hNorm * miniCanvas.height;
+      miniCtx.strokeStyle = TYPE_COLORS[r.type] || '#000';
+      miniCtx.strokeRect(x, y, w, h);
+    });
   }
 
-  preview.addEventListener('load', resizeCanvasToImage);
+  const presetControlsRow = document.createElement('div');
+  presetControlsRow.style.marginTop = '6px';
+  presetControlsRow.style.display = 'flex';
+  presetControlsRow.style.gap = '6px';
 
-  // Region controls + legend
+  const savePresetBtn = document.createElement('button');
+  savePresetBtn.textContent = 'Save Preset';
+  savePresetBtn.className = 'btn secondary';
+
+  const renamePresetBtn = document.createElement('button');
+  renamePresetBtn.textContent = 'Rename Preset';
+  renamePresetBtn.className = 'btn secondary';
+
+  const deletePresetBtn = document.createElement('button');
+  deletePresetBtn.textContent = 'Delete Preset';
+  deletePresetBtn.className = 'btn secondary';
+
+  presetControlsRow.appendChild(savePresetBtn);
+  presetControlsRow.appendChild(renamePresetBtn);
+  presetControlsRow.appendChild(deletePresetBtn);
+  presetBar.appendChild(presetControlsRow);
+
+  previewWrapper.parentNode.insertBefore(presetBar, previewWrapper.nextSibling);
+
+  // ---------- REGION CONTROLS ----------
   const regionControls = document.createElement('div');
   regionControls.style.marginTop = '10px';
 
@@ -843,7 +895,7 @@ document.addEventListener("paste", e => {
   regionControls.appendChild(runRegionBtn);
   regionControls.appendChild(regionList);
   regionControls.appendChild(legend);
-  previewWrapper.parentNode.insertBefore(regionControls, previewWrapper.nextSibling);
+  previewWrapper.parentNode.insertBefore(regionControls, presetBar.nextSibling);
 
   function updateRegionList() {
     regionList.textContent = regions.map((r, i) =>
@@ -851,60 +903,347 @@ document.addEventListener("paste", e => {
     ).join('\n');
   }
 
-  // Drawing logic
+  // ---------- DRAWING + DRAGGING + RESIZING ----------
+  function redrawRegions() {
+    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+    regions.forEach((r, i) => {
+      ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
+      ctx.strokeStyle = TYPE_COLORS[r.type] || 'red';
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    });
+    if (currentRect) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffff00';
+      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+    }
+  }
+
+  function findRegionAtPoint(x, y) {
+    for (let i = regions.length - 1; i >= 0; i--) {
+      const r = regions[i];
+      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  function findResizeEdge(r, x, y) {
+    const margin = 8;
+    const onLeft = Math.abs(x - r.x) <= margin;
+    const onRight = Math.abs(x - (r.x + r.w)) <= margin;
+    const onTop = Math.abs(y - r.y) <= margin;
+    const onBottom = Math.abs(y - (r.y + r.h)) <= margin;
+
+    if (onLeft) return 'left';
+    if (onRight) return 'right';
+    if (onTop) return 'top';
+    if (onBottom) return 'bottom';
+    return null;
+  }
+
   addRegionBtn.addEventListener('click', () => {
     if (!selectedImage) {
       alert('Load an image first.');
       return;
     }
-    resizeCanvasToImage();
     drawing = true;
     currentRect = null;
     regionCanvas.style.cursor = 'crosshair';
   });
 
   regionCanvas.addEventListener('mousedown', e => {
-    if (!drawing) return;
-    const rect = regionCanvas.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-    currentRect = { x: startX, y: startY, w: 0, h: 0 };
-    redrawRegions();
-  });
-
-  regionCanvas.addEventListener('mousemove', e => {
-    if (!drawing || !currentRect) return;
     const rect = regionCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    currentRect.w = x - startX;
-    currentRect.h = y - startY;
-    redrawRegions();
-  });
 
-  regionCanvas.addEventListener('mouseup', () => {
-    if (!drawing || !currentRect) return;
-    drawing = false;
-    regionCanvas.style.cursor = 'default';
-
-    let { x, y, w, h } = currentRect;
-    if (w < 0) { x += w; w = -w; }
-    if (h < 0) { y += h; h = -h; }
-
-    const type = prompt('Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):', 'INGREDIENTS');
-    if (!type) {
-      currentRect = null;
+    if (drawing) {
+      startX = x;
+      startY = y;
+      currentRect = { x: startX, y: startY, w: 0, h: 0 };
       redrawRegions();
       return;
     }
 
-    regions.push({ x, y, w, h, type: type.toUpperCase() });
-    currentRect = null;
-    redrawRegions();
-    updateRegionList();
+    const idx = findRegionAtPoint(x, y);
+    if (idx !== null) {
+      activeRegionIndex = idx;
+      const r = regions[idx];
+      const edge = findResizeEdge(r, x, y);
+      if (edge) {
+        dragMode = 'resize';
+        resizeEdge = edge;
+        dragOffsetX = x;
+        dragOffsetY = y;
+      } else {
+        dragMode = 'move';
+        dragOffsetX = x - r.x;
+        dragOffsetY = y - r.y;
+      }
+      redrawRegions();
+    } else {
+      activeRegionIndex = null;
+      dragMode = null;
+      resizeEdge = null;
+      redrawRegions();
+    }
   });
 
-  // OCR per region
+  regionCanvas.addEventListener('mousemove', e => {
+    const rect = regionCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (drawing && currentRect) {
+      currentRect.w = x - startX;
+      currentRect.h = y - startY;
+      redrawRegions();
+      return;
+    }
+
+    if (dragMode && activeRegionIndex !== null) {
+      const r = regions[activeRegionIndex];
+      if (dragMode === 'move') {
+        r.x = x - dragOffsetX;
+        r.y = y - dragOffsetY;
+      } else if (dragMode === 'resize') {
+        if (resizeEdge === 'right') {
+          r.w = x - r.x;
+        } else if (resizeEdge === 'left') {
+          const oldRight = r.x + r.w;
+          r.x = x;
+          r.w = oldRight - r.x;
+        } else if (resizeEdge === 'bottom') {
+          r.h = y - r.y;
+        } else if (resizeEdge === 'top') {
+          const oldBottom = r.y + r.h;
+          r.y = y;
+          r.h = oldBottom - r.y;
+        }
+      }
+      redrawRegions();
+      updateRegionList();
+    }
+  });
+
+  regionCanvas.addEventListener('mouseup', () => {
+    if (drawing && currentRect) {
+      drawing = false;
+      regionCanvas.style.cursor = 'default';
+
+      let { x, y, w, h } = currentRect;
+      if (w < 0) { x += w; w = -w; }
+      if (h < 0) { y += h; h = -h; }
+
+      const type = prompt('Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):', 'INGREDIENTS');
+      if (!type) {
+        currentRect = null;
+        redrawRegions();
+        return;
+      }
+
+      regions.push({ x, y, w, h, type: type.toUpperCase() });
+      currentRect = null;
+      redrawRegions();
+      updateRegionList();
+    }
+
+    dragMode = null;
+    resizeEdge = null;
+  });
+
+  // ---------- PRESETS STORAGE ----------
+  function loadPresetsFromStorage() {
+    try {
+      const raw = localStorage.getItem('ocrPresetsV1');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) {
+        presets = data;
+      }
+    } catch (e) {
+      console.error('Error loading presets:', e);
+    }
+  }
+
+  function savePresetsToStorage() {
+    try {
+      localStorage.setItem('ocrPresetsV1', JSON.stringify(presets));
+    } catch (e) {
+      console.error('Error saving presets:', e);
+    }
+  }
+
+  function ensurePresetSlots() {
+    while (presets.length < MAX_PRESETS) {
+      presets.push({ name: '', regions: [] });
+    }
+  }
+
+  function updatePresetLabels() {
+    ensurePresetSlots();
+    for (let i = 0; i < MAX_PRESETS; i++) {
+      const p = presets[i];
+      if (p && p.name) {
+        presetLabels[i].textContent = p.name;
+      } else {
+        presetLabels[i].textContent = '(empty)';
+      }
+    }
+  }
+
+  function normalizeRegionsForPreset() {
+    const w = regionCanvas.width;
+    const h = regionCanvas.height;
+    return regions.map(r => ({
+      xNorm: r.x / w,
+      yNorm: r.y / h,
+      wNorm: r.w / w,
+      hNorm: r.h / h,
+      type: r.type
+    }));
+  }
+
+  function applyPresetRegions(preset) {
+    const w = regionCanvas.width;
+    const h = regionCanvas.height;
+    regions = preset.regions.map(r => ({
+      x: r.xNorm * w,
+      y: r.yNorm * h,
+      w: r.wNorm * w,
+      h: r.hNorm * h,
+      type: r.type
+    }));
+    activeRegionIndex = null;
+    redrawRegions();
+    updateRegionList();
+  }
+
+  function loadPreset(index) {
+    ensurePresetSlots();
+    const preset = presets[index];
+    if (!preset || !preset.regions || preset.regions.length === 0) {
+      regions = [];
+      activeRegionIndex = null;
+      redrawRegions();
+      updateRegionList();
+      activePresetIndex = null;
+      updatePresetButtonsHighlight();
+      return;
+    }
+    applyPresetRegions(preset);
+    activePresetIndex = index;
+    updatePresetButtonsHighlight();
+  }
+
+  savePresetBtn.addEventListener('click', () => {
+    if (!regionCanvas.width || !regionCanvas.height) {
+      alert('Image not loaded yet.');
+      return;
+    }
+    ensurePresetSlots();
+    const name = prompt('Preset name:', presets[selectedPresetIndex]?.name || '');
+    if (!name) return;
+
+    presets[selectedPresetIndex] = {
+      name,
+      regions: normalizeRegionsForPreset()
+    };
+    savePresetsToStorage();
+    updatePresetLabels();
+    activePresetIndex = selectedPresetIndex;
+    updatePresetButtonsHighlight();
+  });
+
+  renamePresetBtn.addEventListener('click', () => {
+    ensurePresetSlots();
+    const preset = presets[selectedPresetIndex];
+    if (!preset || !preset.regions || preset.regions.length === 0) {
+      alert('No preset saved in this slot yet.');
+      return;
+    }
+    const name = prompt('New preset name:', preset.name || '');
+    if (!name) return;
+    preset.name = name;
+    savePresetsToStorage();
+    updatePresetLabels();
+  });
+
+  deletePresetBtn.addEventListener('click', () => {
+    ensurePresetSlots();
+    presets[selectedPresetIndex] = { name: '', regions: [] };
+    savePresetsToStorage();
+    updatePresetLabels();
+    if (activePresetIndex === selectedPresetIndex) {
+      activePresetIndex = null;
+      regions = [];
+      redrawRegions();
+      updateRegionList();
+      updatePresetButtonsHighlight();
+    }
+  });
+
+  // ---------- DEFAULT KENT ROLLINS PRESET ----------
+  function initDefaultKentPreset() {
+    // Based on your screenshot: width ≈ 912, height ≈ 1095
+    const baseW = 912;
+    const baseH = 1095;
+
+    const defaultRegions = [
+      { x: 46,  y: 34,  w: 820, h: 114, type: 'TITLE' },
+      { x: 46,  y: 171, w: 820, h: 114, type: 'DETAILS' },
+      { x: 46,  y: 319, w: 392, h: 513, type: 'INGREDIENTS' },
+      { x: 474, y: 319, w: 392, h: 513, type: 'DIRECTIONS' },
+      { x: 46,  y: 867, w: 820, h: 228, type: 'NOTES' }
+    ];
+
+    presets[0] = {
+      name: 'Kent Rollins',
+      regions: defaultRegions.map(r => ({
+        xNorm: r.x / baseW,
+        yNorm: r.y / baseH,
+        wNorm: r.w / baseW,
+        hNorm: r.h / baseH,
+        type: r.type
+      }))
+    };
+    savePresetsToStorage();
+    updatePresetLabels();
+  }
+
+  // ---------- CANVAS RESIZE ----------
+  function resizeCanvasToImage() {
+    if (!preview.naturalWidth || !preview.naturalHeight) return;
+    const rect = preview.getBoundingClientRect();
+    regionCanvas.width = rect.width;
+    regionCanvas.height = rect.height;
+    regionCanvas.style.width = rect.width + 'px';
+    regionCanvas.style.height = rect.height + 'px';
+    regionCanvas.style.display = 'block';
+
+    // Load presets and apply active or default
+    loadPresetsFromStorage();
+    ensurePresetSlots();
+    updatePresetLabels();
+
+    if (presets[0] && presets[0].regions && presets[0].regions.length > 0) {
+      activePresetIndex = 0;
+      applyPresetRegions(presets[0]);
+      updatePresetButtonsHighlight();
+    } else {
+      initDefaultKentPreset();
+      activePresetIndex = 0;
+      applyPresetRegions(presets[0]);
+      updatePresetButtonsHighlight();
+    }
+  }
+
+  preview.addEventListener('load', resizeCanvasToImage);
+  if (preview.complete) {
+    resizeCanvasToImage();
+  }
+
+  // ---------- REGION OCR ----------
   async function runRegionOCR() {
     if (!selectedImage) {
       alert('Load an image first.');
@@ -960,7 +1299,6 @@ document.addEventListener("paste", e => {
     runRegionBtn.disabled = false;
     runRegionBtn.textContent = 'Run Region OCR';
 
-    // Optional: show combined cleaned text in debug panel
     if (debugPanel && debugCleaned) {
       debugPanel.style.display = 'block';
       debugCleaned.value = [
@@ -979,9 +1317,9 @@ document.addEventListener("paste", e => {
     runRegionOCR();
   });
 
-  // Fill form from region OCR
+  // ---------- FILL FORM FROM REGION OCR ----------
   function fillFromRegions(regionOCR) {
-    // TITLE → first non-empty line
+    // TITLE
     if (regionOCR.TITLE) {
       const firstLine = regionOCR.TITLE
         .split('\n')
@@ -990,9 +1328,10 @@ document.addEventListener("paste", e => {
       nameInput.value = firstLine;
     }
 
-    // DETAILS (optional: just log for now)
+    // DETAILS (optional: log for now)
     if (regionOCR.DETAILS) {
       console.log('DETAILS REGION OCR:\n', regionOCR.DETAILS);
+      // You can later parse servings, prep time, etc. into dedicated inputs.
     }
 
     // INGREDIENTS
@@ -1043,7 +1382,6 @@ document.addEventListener("paste", e => {
     }
   }
 })();
-
 
 </script>
 
