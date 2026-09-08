@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe</title>
+  <title>Capture Recipe 01</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -397,44 +397,84 @@ document.getElementById("addIngredient").addEventListener("click", () => {
   addIngredientRow();
 });
 
-/* ========== EXTRACT RECIPE STRUCTURE ========== */
+/* ========== RECIPE PARSER ========== */
 function extractRecipe(text) {
-  const recipe = {
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+  let recipe = {
     name: "",
-    category: "",
+    details: {},
     ingredients: [],
     directions: [],
     notes: []
   };
 
-  const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length === 0) return recipe;
+  let mode = null;
 
-  const lower = lines.map(l => l.toLowerCase());
+  for (const line of lines) {
+    const upper = line.toUpperCase();
 
-  const idxIng = lower.findIndex(l => l.includes("ingredient"));
-  const idxDir = lower.findIndex(l => l.includes("instruction") || l.includes("direction"));
-  const idxNotes = lower.findIndex(l => l.includes("note"));
+    // TITLE
+    if (upper.startsWith("TITLE:")) {
+      recipe.name = line.substring(6).trim();
+      continue;
+    }
 
-  recipe.name = lines[0];
+    // DETAILS block
+    if (upper.startsWith("DETAILS")) {
+      mode = "details";
+      continue;
+    }
 
-  if (idxIng !== -1) {
-    const end = idxDir !== -1 ? idxDir : lines.length;
-    const ingBlock = lines.slice(idxIng + 1, end).join(" ");
-    recipe.ingredients = smartSplitIngredients(ingBlock);
-  }
+    // INGREDIENTS block
+    if (upper.startsWith("INGREDIENTS")) {
+      mode = "ingredients";
+      continue;
+    }
 
-  if (idxDir !== -1) {
-    const end = idxNotes !== -1 ? idxNotes : lines.length;
-    recipe.directions = lines.slice(idxDir + 1, end);
-  }
+    // DIRECTIONS block
+    if (upper.startsWith("DIRECTIONS")) {
+      mode = "directions";
+      continue;
+    }
 
-  if (idxNotes !== -1) {
-    recipe.notes = lines.slice(idxNotes + 1);
+    // NOTES block
+    if (upper.startsWith("NOTES")) {
+      mode = "notes";
+      continue;
+    }
+
+    // DETAILS key/value pairs
+    if (mode === "details") {
+      const [key, value] = line.split(":");
+      if (key && value) {
+        recipe.details[key.trim().toUpperCase()] = value.trim();
+      }
+      continue;
+    }
+
+    // INGREDIENTS lines → send to parseIngredient()
+    if (mode === "ingredients") {
+      recipe.ingredients.push(line);
+      continue;
+    }
+
+    // DIRECTIONS lines → strip numbers
+    if (mode === "directions") {
+      recipe.directions.push(line.replace(/^\d+\.\s*/, ""));
+      continue;
+    }
+
+    // NOTES lines
+    if (mode === "notes") {
+      recipe.notes.push(line);
+      continue;
+    }
   }
 
   return recipe;
 }
+
 
 /* ========== BUILD RECIPE FROM FORM ========== */
 function buildRecipeFromForm() {
@@ -450,13 +490,14 @@ function buildRecipeFromForm() {
   const directions = directionsInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   const notes = notesInput.value.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 
-  return {
-    name: nameInput.value.trim(),
-    category: categoryInput.value.trim(),
-    ingredients,
-    directions,
-    notes
-  };
+return {
+  name: nameInput.value.trim(),
+  category: categoryInput.value.trim(),
+  details: {},   // placeholder until UI fields exist
+  ingredients,
+  directions,
+  notes
+};
 }
 /* ========== SAVE TO LOCALSTORAGE ========== */
 function saveRecipeToStorage(recipe) {
@@ -477,6 +518,9 @@ function saveRecipeToStorage(recipe) {
 
 /* ========== FILL FORM FROM CLEANED TEXT ========== */
 function fillFromCleaned(cleanedText) {
+  const details = extracted.details || {};
+  console.log("DETAILS:", details);
+
   const extracted = extractRecipe(cleanedText);
 
   nameInput.value = extracted.name || "";
@@ -561,6 +605,14 @@ debugReparse.addEventListener('click', () => {
   const cleaned = debugCleaned.value;
   output.value = cleaned;
   fillFromCleaned(cleaned);
+  
+debugParsed.textContent = JSON.stringify({
+  details: extracted.details,
+  ingredients: parsedList,
+  directions: extracted.directions,
+  notes: extracted.notes
+}, null, 2);
+  
 });
 </script>
 
