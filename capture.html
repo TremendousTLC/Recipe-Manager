@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 01</title>
+  <title>Capture Recipe 02</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -518,10 +518,10 @@ function saveRecipeToStorage(recipe) {
 
 /* ========== FILL FORM FROM CLEANED TEXT ========== */
 function fillFromCleaned(cleanedText) {
+  const extracted = extractRecipe(cleanedText);
+
   const details = extracted.details || {};
   console.log("DETAILS:", details);
-
-  const extracted = extractRecipe(cleanedText);
 
   nameInput.value = extracted.name || "";
   categoryInput.value = "";
@@ -540,7 +540,13 @@ function fillFromCleaned(cleanedText) {
     addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
   });
 
-  debugParsed.textContent = JSON.stringify(parsedList, null, 2);
+  // FULL DEBUG OUTPUT (details + ingredients + directions + notes)
+  debugParsed.textContent = JSON.stringify({
+    details: extracted.details,
+    ingredients: parsedList,
+    directions: extracted.directions,
+    notes: extracted.notes
+  }, null, 2);
 
   directionsInput.value = (extracted.directions || []).join("\n");
   notesInput.value = (extracted.notes || []).join("\n");
@@ -614,6 +620,42 @@ debugParsed.textContent = JSON.stringify({
 }, null, 2);
   
 });
+
+document.addEventListener("dragover", e => {
+  e.preventDefault();
+});
+
+document.addEventListener("drop", e => {
+  e.preventDefault();
+
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    selectedImage = reader.result;
+    preview.src = reader.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.addEventListener("paste", e => {
+  const items = e.clipboardData.items;
+  for (const item of items) {
+    if (item.type.startsWith("image/")) {
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = () => {
+        selectedImage = reader.result;
+        preview.src = reader.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(blob);
+    }
+  }
+});
+
 </script>
 
 </body>
