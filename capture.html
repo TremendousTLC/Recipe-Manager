@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 03</title>
+  <title>Capture Recipe 04</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -656,13 +656,22 @@ document.addEventListener("paste", e => {
   }
 });
 
-/* ========== REGION-BASED OCR MODULE (OVERLAY ON PREVIEW) ========== */
+/* ========== PRESET REGION-BASED OCR MODULE (OVERLAY ON PREVIEW) ========== */
 (() => {
   if (!preview) return;
+
   let regions = [];
   let drawing = false;
   let startX = 0, startY = 0;
   let currentRect = null;
+
+  const TYPE_COLORS = {
+    TITLE: '#1e90ff',       // blue
+    DETAILS: '#2ecc71',     // green
+    INGREDIENTS: '#e74c3c', // red
+    DIRECTIONS: '#e67e22',  // orange
+    NOTES: '#9b59b6'        // purple
+  };
 
   // Wrap preview in a positioned container
   const previewWrapper = document.createElement('div');
@@ -671,7 +680,7 @@ document.addEventListener("paste", e => {
   preview.parentNode.insertBefore(previewWrapper, preview);
   previewWrapper.appendChild(preview);
 
-  // Create canvas overlay
+  // Canvas overlay
   const regionCanvas = document.createElement('canvas');
   regionCanvas.id = 'regionCanvas';
   regionCanvas.style.position = 'absolute';
@@ -683,6 +692,85 @@ document.addEventListener("paste", e => {
 
   const ctx = regionCanvas.getContext('2d');
 
+  function redrawRegions() {
+    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+    regions.forEach(r => {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = TYPE_COLORS[r.type] || 'red';
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+    });
+    if (currentRect) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffff00';
+      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+    }
+  }
+
+  function createPresetRegions() {
+    regions = [];
+    const w = regionCanvas.width;
+    const h = regionCanvas.height;
+
+    const marginX = w * 0.05;
+    const fullWidth = w * 0.90;
+
+    // TITLE (top)
+    const titleH = h * 0.10;
+    regions.push({
+      x: marginX,
+      y: h * 0.03,
+      w: fullWidth,
+      h: titleH,
+      type: 'TITLE'
+    });
+
+    // DETAILS (under title)
+    const detailsH = h * 0.10;
+    const detailsY = h * 0.03 + titleH + h * 0.02;
+    regions.push({
+      x: marginX,
+      y: detailsY,
+      w: fullWidth,
+      h: detailsH,
+      type: 'DETAILS'
+    });
+
+    // MIDDLE ROW: INGREDIENTS LEFT, DIRECTIONS RIGHT
+    const middleY = detailsY + detailsH + h * 0.03;
+    const middleH = h * 0.45;
+    const colW = fullWidth / 2 - w * 0.02;
+
+    regions.push({
+      x: marginX,
+      y: middleY,
+      w: colW,
+      h: middleH,
+      type: 'INGREDIENTS'
+    });
+
+    regions.push({
+      x: marginX + colW + w * 0.04,
+      y: middleY,
+      w: colW,
+      h: middleH,
+      type: 'DIRECTIONS'
+    });
+
+    // NOTES (bottom)
+    const notesY = middleY + middleH + h * 0.03;
+    const notesH = h * 0.20;
+    regions.push({
+      x: marginX,
+      y: notesY,
+      w: fullWidth,
+      h: notesH,
+      type: 'NOTES'
+    });
+
+    redrawRegions();
+    updateRegionList();
+  }
+
   function resizeCanvasToImage() {
     if (!preview.naturalWidth || !preview.naturalHeight) return;
     const rect = preview.getBoundingClientRect();
@@ -691,25 +779,17 @@ document.addEventListener("paste", e => {
     regionCanvas.style.width = rect.width + 'px';
     regionCanvas.style.height = rect.height + 'px';
     regionCanvas.style.display = 'block';
-    redrawRegions();
+
+    if (regions.length === 0) {
+      createPresetRegions();
+    } else {
+      redrawRegions();
+    }
   }
 
   preview.addEventListener('load', resizeCanvasToImage);
 
-  function redrawRegions() {
-    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'red';
-    regions.forEach(r => {
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-    });
-    if (currentRect) {
-      ctx.strokeStyle = 'yellow';
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
-    }
-  }
-
-  // Region controls UI
+  // Region controls + legend
   const regionControls = document.createElement('div');
   regionControls.style.marginTop = '10px';
 
@@ -729,9 +809,40 @@ document.addEventListener("paste", e => {
   regionList.style.maxHeight = '120px';
   regionList.style.overflowY = 'auto';
 
+  const legend = document.createElement('div');
+  legend.style.marginTop = '6px';
+  legend.style.fontSize = '12px';
+
+  function buildLegend() {
+    legend.innerHTML = '';
+    Object.keys(TYPE_COLORS).forEach(type => {
+      const item = document.createElement('div');
+      item.style.display = 'inline-block';
+      item.style.marginRight = '10px';
+
+      const swatch = document.createElement('span');
+      swatch.style.display = 'inline-block';
+      swatch.style.width = '12px';
+      swatch.style.height = '12px';
+      swatch.style.background = TYPE_COLORS[type];
+      swatch.style.marginRight = '4px';
+      swatch.style.border = '1px solid #333';
+
+      const label = document.createElement('span');
+      label.textContent = type.charAt(0) + type.slice(1).toLowerCase();
+
+      item.appendChild(swatch);
+      item.appendChild(label);
+      legend.appendChild(item);
+    });
+  }
+
+  buildLegend();
+
   regionControls.appendChild(addRegionBtn);
   regionControls.appendChild(runRegionBtn);
   regionControls.appendChild(regionList);
+  regionControls.appendChild(legend);
   previewWrapper.parentNode.insertBefore(regionControls, previewWrapper.nextSibling);
 
   function updateRegionList() {
@@ -776,7 +887,6 @@ document.addEventListener("paste", e => {
     drawing = false;
     regionCanvas.style.cursor = 'default';
 
-    // Normalize width/height to positive
     let { x, y, w, h } = currentRect;
     if (w < 0) { x += w; w = -w; }
     if (h < 0) { y += h; h = -h; }
@@ -801,7 +911,7 @@ document.addEventListener("paste", e => {
       return;
     }
     if (regions.length === 0) {
-      alert('Add at least one region.');
+      alert('No regions defined.');
       return;
     }
     if (!preview.naturalWidth || !preview.naturalHeight) {
@@ -850,8 +960,8 @@ document.addEventListener("paste", e => {
     runRegionBtn.disabled = false;
     runRegionBtn.textContent = 'Run Region OCR';
 
-    // Debug: show region OCR in debug panel if available
-    if (debugPanel && debugCleaned && debugLines && debugParsed) {
+    // Optional: show combined cleaned text in debug panel
+    if (debugPanel && debugCleaned) {
       debugPanel.style.display = 'block';
       debugCleaned.value = [
         'TITLE:\n' + (regionOCR.TITLE || ''),
@@ -871,13 +981,16 @@ document.addEventListener("paste", e => {
 
   // Fill form from region OCR
   function fillFromRegions(regionOCR) {
-    // TITLE
+    // TITLE → first non-empty line
     if (regionOCR.TITLE) {
-      const firstLine = regionOCR.TITLE.split('\n').map(l => l.trim()).filter(l => l.length > 0)[0] || '';
+      const firstLine = regionOCR.TITLE
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0)[0] || '';
       nameInput.value = firstLine;
     }
 
-    // DETAILS (optional, just log for now)
+    // DETAILS (optional: just log for now)
     if (regionOCR.DETAILS) {
       console.log('DETAILS REGION OCR:\n', regionOCR.DETAILS);
     }
@@ -898,13 +1011,17 @@ document.addEventListener("paste", e => {
         addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
       });
 
-      debugLines.textContent = JSON.stringify(lines, null, 2);
-      debugParsed.textContent = JSON.stringify({
-        details: {},
-        ingredients: parsedList,
-        directions: [],
-        notes: []
-      }, null, 2);
+      if (debugLines) {
+        debugLines.textContent = JSON.stringify(lines, null, 2);
+      }
+      if (debugParsed) {
+        debugParsed.textContent = JSON.stringify({
+          details: {},
+          ingredients: parsedList,
+          directions: [],
+          notes: []
+        }, null, 2);
+      }
     }
 
     // DIRECTIONS
