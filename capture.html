@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 05</title>
+  <title>Capture Recipe 06</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -1334,34 +1334,34 @@ document.addEventListener("paste", e => {
       // You can later parse servings, prep time, etc. into dedicated inputs.
     }
 
-    // INGREDIENTS
-    if (regionOCR.INGREDIENTS) {
-      const lines = regionOCR.INGREDIENTS
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
+// INGREDIENTS (Option A – simple, stable)
+if (regionOCR.INGREDIENTS) {
+  const lines = regionOCR.INGREDIENTS
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
 
-      document.querySelector("#ingredientsTable tbody").innerHTML = "";
-      const parsedList = [];
+  const tbody = document.querySelector("#ingredientsTable tbody");
+  tbody.innerHTML = "";
 
-      lines.forEach(line => {
-        const ing = parseIngredient(line);
-        parsedList.push(ing);
-        addIngredientRow(ing.qty, ing.unit, ing.name, ing.prep);
-      });
+  lines.forEach(line => {
+    // Put the whole ingredient line in the Name column
+    addIngredientRow('', '', line, '');
+  });
 
-      if (debugLines) {
-        debugLines.textContent = JSON.stringify(lines, null, 2);
-      }
-      if (debugParsed) {
-        debugParsed.textContent = JSON.stringify({
-          details: {},
-          ingredients: parsedList,
-          directions: [],
-          notes: []
-        }, null, 2);
-      }
-    }
+  if (debugLines) {
+    debugLines.textContent = JSON.stringify(lines, null, 2);
+  }
+  if (debugParsed) {
+    debugParsed.textContent = JSON.stringify({
+      details: {},
+      ingredients: lines,
+      directions: [],
+      notes: []
+    }, null, 2);
+  }
+}
+
 
     // DIRECTIONS
     if (regionOCR.DIRECTIONS) {
