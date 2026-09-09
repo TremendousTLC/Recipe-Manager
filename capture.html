@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 13</title>
+  <title>Capture Recipe 14</title>
 <style>
 
 body {
@@ -22,7 +22,7 @@ h1, h2, h3 {
   margin-top: 10px;
   border: 1px solid #ccc;
   padding: 5px;
-  display: none;
+  display: block;
 }
 
 #output,
@@ -744,27 +744,22 @@ async function runOCR() {
     return;
   }
 
-  // Load image into preview
+  // Load image into preview (this triggers your existing preview.onload → resizeCanvas)
   preview.src = URL.createObjectURL(file);
 
-  // Wait for preview to load so canvas can size correctly
-  preview.onload = async () => {
+  // Run full-image OCR directly on the file (not preview) so we don't override preview.onload
+  const { createWorker } = Tesseract;
+  const worker = await createWorker();
 
-    const { createWorker } = Tesseract;
-    const worker = await createWorker();
+  await worker.loadLanguage("eng");
+  await worker.initialize("eng");
 
-    await worker.loadLanguage("eng");
-    await worker.initialize("eng");
+  const result = await worker.recognize(file);
+  const text = result.data.text;
 
-    // Run full-image OCR
-    const result = await worker.recognize(preview);
-    const text = result.data.text;
+  document.getElementById("output").value = text;
 
-    // Push raw OCR into cleaned OCR textarea
-    document.getElementById("output").value = text;
-
-    await worker.terminate();
-  };
+  await worker.terminate();
 }
 
 document.getElementById("runOCR").addEventListener("click", runOCR);
@@ -796,7 +791,7 @@ async function runRegionOCR() {
   await worker.loadLanguage("eng");
   await worker.initialize("eng");
 
-  // Loop through each region and OCR it
+  // OCR each region
   for (const r of window.regions) {
 
     const canvas = document.createElement("canvas");
@@ -819,7 +814,7 @@ async function runRegionOCR() {
 
   await worker.terminate();
 
-  // Push extracted region text into your landing page
+  // Fill your landing page
   fillFromRegions(regionOCR);
 }
 
@@ -834,10 +829,9 @@ document.addEventListener("paste", async (e) => {
   const file = item.getAsFile();
   preview.src = URL.createObjectURL(file);
 
-  preview.onload = () => {
-    // triggers resizeCanvas() automatically
-  };
+  // Your existing preview.onload → resizeCanvas will run automatically
 });
+
 </script>
 
 </body>
