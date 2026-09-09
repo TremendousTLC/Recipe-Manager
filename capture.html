@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 24</title>
+  <title>Capture Recipe 25</title>
 <style>
 
 body {
@@ -300,7 +300,7 @@ debugToggle.addEventListener("click", () => {
   debugPanel.style.display = (debugPanel.style.display === "none") ? "block" : "none";
 });
 
-// ---------- INGREDIENT PARSER (UPDATED) ----------
+// ---------- INGREDIENT PARSER (UPDATED + FIXED) ----------
 
 // Your standardized unit system
 const UNIT_MAP = {
@@ -333,12 +333,7 @@ const UNIT_MAP = {
 function extractUnit(line) {
     const keys = Object.keys(UNIT_MAP);
     const regex = new RegExp(`^(${keys.join("|")})\\b`, "i");
-    const match = line.match(regex);
-
-    if (!match) return "";
-
-    const rawUnit = match[0];
-    return UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;
+    return line.match(regex);   // <-- returns the RAW matched unit
 }
 
 // Full ingredient parser
@@ -351,12 +346,12 @@ function parseIngredient(line) {
     if (qty) line = line.replace(qty, "").trim();
 
     // 2. Unit (your standardized system)
-    const unit = extractUnit(line);
-    if (unit) {
-        const raw = Object.keys(UNIT_MAP).find(k => UNIT_MAP[k] === unit);
-        if (raw) {
-            line = line.replace(new RegExp("^" + raw, "i"), "").trim();
-        }
+    const unitMatch = extractUnit(line);
+    let unit = "";
+    if (unitMatch) {
+        const rawUnit = unitMatch[0];                // <-- RAW unit (C, T, t, lb, pkg, cup, tbsp, etc.)
+        unit = UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;  // <-- normalized unit
+        line = line.replace(new RegExp("^" + rawUnit, "i"), "").trim();  // <-- remove RAW unit from line
     }
 
     // 3. Prep (cooking actions)
@@ -368,6 +363,26 @@ function parseIngredient(line) {
     const name = line.trim();
 
     return { qty, unit, name, prep };
+}
+
+function parseIngredientsFromCleaned(cleanedText) {
+    const lines = cleanedText.split("\n")
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+    debugLines.textContent = JSON.stringify(lines, null, 2);
+
+    const parsed = lines.map(parseIngredient);
+
+    debugParsed.textContent = JSON.stringify(parsed, null, 2);
+
+    // Populate table
+    const tbody = document.querySelector("#ingredientsTable tbody");
+    tbody.innerHTML = "";
+
+    parsed.forEach(item => {
+        addIngredientRow(item.qty, item.unit, item.name, item.prep);
+    });
 }
 
 // ---------- INGREDIENT TABLE ----------
@@ -824,12 +839,16 @@ async function runOCR() {
   await worker.initialize("eng");
 
   const result = await worker.recognize(file);
-  document.getElementById("output").value = result.data.text;
+  const rawText = result.data.text;
+
+  document.getElementById("output").value = rawText;
 
   await worker.terminate();
-}
 
-document.getElementById("runOCR").addEventListener("click", runOCR);
+  // CLEAN + PARSE
+  const cleaned = rawText.trim();
+  parseIngredientsFromCleaned(cleaned);
+}
 
 // ---------- REGION OCR ----------
 async function runRegionOCR() {
@@ -864,10 +883,13 @@ async function runRegionOCR() {
   }
 
   await worker.terminate();
-  fillFromRegions(regionOCR);
-}
 
-document.getElementById("runRegionBtn").addEventListener("click", runRegionOCR);
+  fillFromRegions(regionOCR);
+
+  // CLEAN + PARSE
+  const cleaned = regionOCR.INGREDIENTS.trim();
+  parseIngredientsFromCleaned(cleaned);
+}
 
 // ---------- CLIPBOARD PASTE ----------
 document.addEventListener("paste", async (e) => {
