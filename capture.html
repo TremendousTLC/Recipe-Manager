@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 16</title>
+  <title>Capture Recipe 17</title>
 <style>
 
 body {
@@ -385,8 +385,10 @@ function fillFromRegions(regionOCR) {
 }
 
 // ---------- PRESET / REGION OVERLAY ----------
-(() => {
-  if (!preview) return;
+document.addEventListener("DOMContentLoaded", () => {
+
+  const preview = document.getElementById("preview");
+  const regionCanvas = document.getElementById("regionCanvas");
 
   // GLOBAL STATE
   let regions = [];
@@ -459,6 +461,8 @@ function fillFromRegions(regionOCR) {
   }
 
   buildPresetButtons();
+
+});
 
   function showMiniMap(index, evt) {
     const preset = presets[index];
