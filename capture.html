@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 20</title>
+  <title>Capture Recipe 21</title>
 <style>
 
 body {
@@ -262,6 +262,8 @@ textarea {
   </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
 // ---------- BASIC DOM HOOKS ----------
 const preview = document.getElementById("preview");
 const regionCanvas = document.getElementById("regionCanvas");
@@ -1124,6 +1126,8 @@ document.addEventListener("paste", async (e) => {
 
   const file = item.getAsFile();
   preview.src = URL.createObjectURL(file);
+});
+
 });
 </script>
 
