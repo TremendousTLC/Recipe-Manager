@@ -2,104 +2,131 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 11</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #fafafa;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    h1, h2, h3 { margin-bottom: 10px; }
-    #preview {
-      max-width: 100%;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      padding: 5px;
-      display: none;
-    }
-    #output, #jsonOutput {
-      white-space: pre-wrap;
-      background: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .btn {
-      padding: 8px 14px;
-      background: #ff6f61;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 10px;
-      margin-right: 5px;
-    }
-    .btn.secondary { background: #666; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      margin-top: 10px;
-    }
-    table th, table td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: left;
-    }
-    table input {
-      width: 100%;
-      padding: 4px;
-      box-sizing: border-box;
-    }
-    textarea, input[type="text"] {
-      width: 100%;
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-family: inherit;
-      font-size: 14px;
-      margin-top: 5px;
-    }
-    textarea { min-height: 80px; }
+  <title>Capture Recipe 12</title>
+<style>
 
-    /* Debug panel */
-    #debugToggle {
-      margin-top: 20px;
-      background: #444;
-    }
-    #debugPanel {
-      display: none;
-      margin-top: 10px;
-      padding: 10px;
-      background: #222;
-      color: #eee;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-    #debugPanel h3 {
-      margin-top: 10px;
-      color: #ffd27f;
-    }
-    #debugPanel textarea {
-      background: #111;
-      color: #eee;
-      border-color: #555;
-      min-height: 60px;
-      font-size: 12px;
-    }
-    #debugPanel pre {
-      background: #111;
-      color: #eee;
-      padding: 8px;
-      border-radius: 4px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-  </style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #fafafa;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  margin-bottom: 10px;
+}
+
+#preview {
+  max-width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 5px;
+  display: none;
+}
+
+#output,
+#jsonOutput {
+  white-space: pre-wrap;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.btn {
+  padding: 8px 14px;
+  background: #ff6f61;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+.btn.secondary {
+  background: #666;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  margin-top: 10px;
+}
+
+table th,
+table td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: left;
+}
+
+table input {
+  width: 100%;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+textarea,
+input[type="text"] {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+textarea {
+  min-height: 80px;
+}
+
+
+/* Debug panel */
+
+#debugToggle {
+  margin-top: 20px;
+  background: #444;
+}
+
+#debugPanel {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: #222;
+  color: #eee;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+#debugPanel h3 {
+  margin-top: 10px;
+  color: #ffd27f;
+}
+
+#debugPanel textarea {
+  background: #111;
+  color: #eee;
+  border-color: #555;
+  min-height: 60px;
+  font-size: 12px;
+}
+
+#debugPanel pre {
+  background: #111;
+  color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+</style>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
