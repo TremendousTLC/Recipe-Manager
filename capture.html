@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 23</title>
+  <title>Capture Recipe 24</title>
 <style>
 
 body {
@@ -286,7 +286,6 @@ fileInput.addEventListener("change", () => {
 document.addEventListener("DOMContentLoaded", () => {
 
 // ---------- GLOBAL DOM HOOKS ----------
-const preview = document.getElementById("preview");
 const regionCanvas = document.getElementById("regionCanvas");
 const ctx = regionCanvas.getContext("2d");
 
@@ -300,6 +299,76 @@ debugPanel.style.display = "none";
 debugToggle.addEventListener("click", () => {
   debugPanel.style.display = (debugPanel.style.display === "none") ? "block" : "none";
 });
+
+// ---------- INGREDIENT PARSER (UPDATED) ----------
+
+// Your standardized unit system
+const UNIT_MAP = {
+    "C": "cups",
+    "cup": "cups",
+    "cups": "cups",
+
+    "T": "tablespoons",
+    "tbsp": "tablespoons",
+    "tablespoon": "tablespoons",
+    "tablespoons": "tablespoons",
+
+    "t": "teaspoons",
+    "tsp": "teaspoons",
+    "teaspoon": "teaspoons",
+    "teaspoons": "teaspoons",
+
+    "lb": "pound",
+    "lbs": "pounds",
+    "pound": "pound",
+    "pounds": "pounds",
+
+    "pkg": "package",
+    "pkgs": "packages",
+    "package": "package",
+    "packages": "packages"
+};
+
+// Extract unit using your standardized system
+function extractUnit(line) {
+    const keys = Object.keys(UNIT_MAP);
+    const regex = new RegExp(`^(${keys.join("|")})\\b`, "i");
+    const match = line.match(regex);
+
+    if (!match) return "";
+
+    const rawUnit = match[0];
+    return UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;
+}
+
+// Full ingredient parser
+function parseIngredient(line) {
+    line = line.trim();
+
+    // 1. Qty (numbers, fractions, ranges)
+    const qtyMatch = line.match(/^(\d+\/\d+|\d+\s+\d+\/\d+|\d+(\.\d+)?|\d+\s*-\s*\d+|\d+\s+to\s+\d+)/i);
+    const qty = qtyMatch ? qtyMatch[0] : "";
+    if (qty) line = line.replace(qty, "").trim();
+
+    // 2. Unit (your standardized system)
+    const unit = extractUnit(line);
+    if (unit) {
+        const raw = Object.keys(UNIT_MAP).find(k => UNIT_MAP[k] === unit);
+        if (raw) {
+            line = line.replace(new RegExp("^" + raw, "i"), "").trim();
+        }
+    }
+
+    // 3. Prep (cooking actions)
+    const prepMatch = line.match(/(softened|chopped|diced|sliced|minced|shredded|peeled|crushed|grated|beaten|optional|for frying)/i);
+    const prep = prepMatch ? prepMatch[0] : "";
+    if (prep) line = line.replace(prep, "").trim();
+
+    // 4. Name
+    const name = line.trim();
+
+    return { qty, unit, name, prep };
+}
 
 // ---------- INGREDIENT TABLE ----------
 function addIngredientRow(qty, unit, name, prep) {
