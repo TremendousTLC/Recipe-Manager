@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 14</title>
+  <title>Capture Recipe 15</title>
 <style>
 
 body {
@@ -744,10 +744,10 @@ async function runOCR() {
     return;
   }
 
-  // Load image into preview (this triggers your existing preview.onload → resizeCanvas)
+  // Load image — this triggers your existing preview.onload → resizeCanvas
   preview.src = URL.createObjectURL(file);
 
-  // Run full-image OCR directly on the file (not preview) so we don't override preview.onload
+  // Full-image OCR runs on the file directly (does NOT override preview.onload)
   const { createWorker } = Tesseract;
   const worker = await createWorker();
 
@@ -763,6 +763,8 @@ async function runOCR() {
 }
 
 document.getElementById("runOCR").addEventListener("click", runOCR);
+
+
 
 // ---------- REGION OCR (Run Region OCR button) ----------
 async function runRegionOCR() {
@@ -820,6 +822,8 @@ async function runRegionOCR() {
 
 document.getElementById("runRegionBtn").addEventListener("click", runRegionOCR);
 
+
+
 // ---------- CLIPBOARD PASTE SUPPORT ----------
 document.addEventListener("paste", async (e) => {
 
@@ -829,7 +833,10 @@ document.addEventListener("paste", async (e) => {
   const file = item.getAsFile();
   preview.src = URL.createObjectURL(file);
 
-  // Your existing preview.onload → resizeCanvas will run automatically
+  // IMPORTANT:
+  // Do NOT override preview.onload here.
+  // Your existing preview.addEventListener("load", resizeCanvas)
+  // will fire automatically and restore your regions.
 });
 
 </script>
