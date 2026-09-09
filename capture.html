@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 25</title>
+  <title>Capture Recipe 26</title>
 <style>
 
 body {
@@ -262,636 +262,21 @@ textarea {
   </div>
 
 <script>
-
+// ---------- PREVIEW + FILE INPUT + CLIPBOARD ----------
 const fileInput = document.getElementById("fileInput");
 const preview = document.getElementById("preview");
 
 fileInput.addEventListener("change", () => {
-    console.log("FILE INPUT FIRED");
+  const file = fileInput.files[0];
+  if (!file) return;
 
-    const file = fileInput.files[0];
-    if (!file) {
-        console.log("NO FILE");
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-        console.log("PREVIEW UPDATED");
-        preview.src = reader.result;
-    };
-    reader.readAsDataURL(file);
+  const reader = new FileReader();
+  reader.onload = () => {
+    preview.src = reader.result;
+  };
+  reader.readAsDataURL(file);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-
-// ---------- GLOBAL DOM HOOKS ----------
-const regionCanvas = document.getElementById("regionCanvas");
-const ctx = regionCanvas.getContext("2d");
-
-const debugPanel = document.getElementById("debugPanel");
-const debugToggle = document.getElementById("debugToggle");
-const debugLines = document.getElementById("debugLines");
-const debugParsed = document.getElementById("debugParsed");
-
-// ---------- DEBUG TOGGLE ----------
-debugPanel.style.display = "none";
-debugToggle.addEventListener("click", () => {
-  debugPanel.style.display = (debugPanel.style.display === "none") ? "block" : "none";
-});
-
-// ---------- INGREDIENT PARSER (UPDATED + FIXED) ----------
-
-// Your standardized unit system
-const UNIT_MAP = {
-    "C": "cups",
-    "cup": "cups",
-    "cups": "cups",
-
-    "T": "tablespoons",
-    "tbsp": "tablespoons",
-    "tablespoon": "tablespoons",
-    "tablespoons": "tablespoons",
-
-    "t": "teaspoons",
-    "tsp": "teaspoons",
-    "teaspoon": "teaspoons",
-    "teaspoons": "teaspoons",
-
-    "lb": "pound",
-    "lbs": "pounds",
-    "pound": "pound",
-    "pounds": "pounds",
-
-    "pkg": "package",
-    "pkgs": "packages",
-    "package": "package",
-    "packages": "packages"
-};
-
-// Extract unit using your standardized system
-function extractUnit(line) {
-    const keys = Object.keys(UNIT_MAP);
-    const regex = new RegExp(`^(${keys.join("|")})\\b`, "i");
-    return line.match(regex);   // <-- returns the RAW matched unit
-}
-
-// Full ingredient parser
-function parseIngredient(line) {
-    line = line.trim();
-
-    // 1. Qty (numbers, fractions, ranges)
-    const qtyMatch = line.match(/^(\d+\/\d+|\d+\s+\d+\/\d+|\d+(\.\d+)?|\d+\s*-\s*\d+|\d+\s+to\s+\d+)/i);
-    const qty = qtyMatch ? qtyMatch[0] : "";
-    if (qty) line = line.replace(qty, "").trim();
-
-    // 2. Unit (your standardized system)
-    const unitMatch = extractUnit(line);
-    let unit = "";
-    if (unitMatch) {
-        const rawUnit = unitMatch[0];                // <-- RAW unit (C, T, t, lb, pkg, cup, tbsp, etc.)
-        unit = UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;  // <-- normalized unit
-        line = line.replace(new RegExp("^" + rawUnit, "i"), "").trim();  // <-- remove RAW unit from line
-    }
-
-    // 3. Prep (cooking actions)
-    const prepMatch = line.match(/(softened|chopped|diced|sliced|minced|shredded|peeled|crushed|grated|beaten|optional|for frying)/i);
-    const prep = prepMatch ? prepMatch[0] : "";
-    if (prep) line = line.replace(prep, "").trim();
-
-    // 4. Name
-    const name = line.trim();
-
-    return { qty, unit, name, prep };
-}
-
-function parseIngredientsFromCleaned(cleanedText) {
-    const lines = cleanedText.split("\n")
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-    debugLines.textContent = JSON.stringify(lines, null, 2);
-
-    const parsed = lines.map(parseIngredient);
-
-    debugParsed.textContent = JSON.stringify(parsed, null, 2);
-
-    // Populate table
-    const tbody = document.querySelector("#ingredientsTable tbody");
-    tbody.innerHTML = "";
-
-    parsed.forEach(item => {
-        addIngredientRow(item.qty, item.unit, item.name, item.prep);
-    });
-}
-
-// ---------- INGREDIENT TABLE ----------
-function addIngredientRow(qty, unit, name, prep) {
-  const tbody = document.querySelector("#ingredientsTable tbody");
-  const tr = document.createElement("tr");
-
-  const tdQty = document.createElement("td");
-  const tdUnit = document.createElement("td");
-  const tdName = document.createElement("td");
-  const tdPrep = document.createElement("td");
-  const tdDel = document.createElement("td");
-
-  const iQty = document.createElement("input");
-  iQty.value = qty || "";
-  const iUnit = document.createElement("input");
-  iUnit.value = unit || "";
-  const iName = document.createElement("input");
-  iName.value = name || "";
-  const iPrep = document.createElement("input");
-  iPrep.value = prep || "";
-
-  tdQty.appendChild(iQty);
-  tdUnit.appendChild(iUnit);
-  tdName.appendChild(iName);
-  tdPrep.appendChild(iPrep);
-
-  const delBtn = document.createElement("button");
-  delBtn.textContent = "X";
-  delBtn.className = "btn secondary";
-  delBtn.addEventListener("click", () => tr.remove());
-  tdDel.appendChild(delBtn);
-
-  tr.appendChild(tdQty);
-  tr.appendChild(tdUnit);
-  tr.appendChild(tdName);
-  tr.appendChild(tdPrep);
-  tr.appendChild(tdDel);
-
-  tbody.appendChild(tr);
-}
-
-// ---------- FILL FORM FROM REGION OCR ----------
-function fillFromRegions(regionOCR) {
-  const nameInput = document.getElementById("nameInput");
-  const directionsInput = document.getElementById("directionsInput");
-  const notesInput = document.getElementById("notesInput");
-
-  if (regionOCR.TITLE) {
-    const firstLine = regionOCR.TITLE
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0)[0] || '';
-    nameInput.value = firstLine;
-  }
-
-  if (regionOCR.INGREDIENTS) {
-    const lines = regionOCR.INGREDIENTS
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-
-    const tbody = document.querySelector("#ingredientsTable tbody");
-    tbody.innerHTML = "";
-
-    lines.forEach(line => addIngredientRow('', '', line, ''));
-
-    if (debugLines) debugLines.textContent = JSON.stringify(lines, null, 2);
-    if (debugParsed) {
-      debugParsed.textContent = JSON.stringify({
-        details: {},
-        ingredients: lines,
-        directions: [],
-        notes: []
-      }, null, 2);
-    }
-  }
-
-  if (regionOCR.DIRECTIONS) {
-    const dirLines = regionOCR.DIRECTIONS
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-    directionsInput.value = dirLines.join('\n');
-  }
-
-  if (regionOCR.NOTES) {
-    const noteLines = regionOCR.NOTES
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-    notesInput.value = noteLines.join('\n');
-  }
-}
-
-// ---------- PRESET / REGION OVERLAY ----------
-(() => {
-
-  window.regions = [];
-  window.presets = [];
-
-  let activeRegionIndex = null;
-  let drawing = false;
-  let dragMode = null;
-  let dragOffsetX = 0, dragOffsetY = 0;
-  let resizeEdge = null;
-  let startX = 0, startY = 0;
-  let currentRect = null;
-
-  const TYPE_COLORS = {
-    TITLE: '#1e90ff',
-    DETAILS: '#2ecc71',
-    INGREDIENTS: '#e74c3c',
-    DIRECTIONS: '#e67e22',
-    NOTES: '#9b59b6'
-  };
-
-  const MAX_PRESETS = 5;
-  let activePresetIndex = null;
-  let selectedPresetIndex = 0;
-
-  const presetButtonsRow = document.getElementById("presetButtonsRow");
-  const presetButtons = [];
-  const presetLabels = [];
-
-  const miniMapPopup = document.getElementById("miniMapPopup");
-  const miniCanvas = document.getElementById("miniMapCanvas");
-  const miniCtx = miniCanvas.getContext("2d");
-
-  const addRegionBtn = document.getElementById("addRegionBtn");
-  const runRegionBtn = document.getElementById("runRegionBtn");
-  const regionList = document.getElementById("regionList");
-
-  // PRESET BUTTONS
-  function buildPresetButtons() {
-    for (let i = 0; i < MAX_PRESETS; i++) {
-      const wrap = document.createElement("div");
-      wrap.style.display = "flex";
-      wrap.style.flexDirection = "column";
-      wrap.style.alignItems = "center";
-
-      const btn = document.createElement("button");
-      btn.textContent = `Preset ${i + 1}`;
-      btn.className = "btn secondary";
-      btn.dataset.index = i;
-
-      const label = document.createElement("div");
-      label.textContent = "(empty)";
-      label.style.fontSize = "11px";
-      label.style.marginTop = "2px";
-
-      wrap.appendChild(btn);
-      wrap.appendChild(label);
-      presetButtonsRow.appendChild(wrap);
-
-      presetButtons.push(btn);
-      presetLabels.push(label);
-
-      btn.addEventListener("click", () => {
-        selectedPresetIndex = i;
-        loadPreset(i);
-      });
-
-      btn.addEventListener("mouseenter", e => showMiniMap(i, e));
-      btn.addEventListener("mouseleave", () => miniMapPopup.style.display = "none");
-    }
-  }
-
-  buildPresetButtons();
-
-  function showMiniMap(index, evt) {
-    const preset = presets[index];
-    if (!preset || !preset.regions.length) return;
-
-    const rect = evt.target.getBoundingClientRect();
-    miniMapPopup.style.left = rect.left + "px";
-    miniMapPopup.style.top = rect.bottom + 4 + "px";
-    miniMapPopup.style.display = "block";
-
-    miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-
-    preset.regions.forEach(r => {
-      const x = r.xNorm * miniCanvas.width;
-      const y = r.yNorm * miniCanvas.height;
-      const w = r.wNorm * miniCanvas.width;
-      const h = r.hNorm * miniCanvas.height;
-      miniCtx.strokeStyle = TYPE_COLORS[r.type];
-      miniCtx.strokeRect(x, y, w, h);
-    });
-  }
-
-  // REGION CONTROLS
-  addRegionBtn.addEventListener("click", () => {
-    drawing = true;
-    currentRect = null;
-    regionCanvas.style.cursor = "crosshair";
-  });
-
-  function updateRegionList() {
-    regionList.textContent = regions.map((r, i) =>
-      `${i + 1}. ${r.type} @ x=${Math.round(r.x)}, y=${Math.round(r.y)}, w=${Math.round(r.w)}, h=${Math.round(r.h)}`
-    ).join("\n");
-  }
-
-  // DRAWING
-  regionCanvas.addEventListener("mousedown", e => {
-    const rect = regionCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (drawing) {
-      startX = x;
-      startY = y;
-      currentRect = { x, y, w: 0, h: 0 };
-      redraw();
-      return;
-    }
-
-    const idx = findRegionAt(x, y);
-    if (idx !== null) {
-      activeRegionIndex = idx;
-      const r = regions[idx];
-      const edge = findResizeEdge(r, x, y);
-
-      if (edge) {
-        dragMode = "resize";
-        resizeEdge = edge;
-        dragOffsetX = x;
-        dragOffsetY = y;
-      } else {
-        dragMode = "move";
-        dragOffsetX = x - r.x;
-        dragOffsetY = y - r.y;
-      }
-      redraw();
-    } else {
-      activeRegionIndex = null;
-      dragMode = null;
-      resizeEdge = null;
-      redraw();
-    }
-  });
-
-  regionCanvas.addEventListener("mousemove", e => {
-    const rect = regionCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (drawing && currentRect) {
-      currentRect.w = x - startX;
-      currentRect.h = y - startY;
-      redraw();
-      return;
-    }
-
-    if (dragMode && activeRegionIndex !== null) {
-      const r = regions[activeRegionIndex];
-
-      if (dragMode === "move") {
-        r.x = x - dragOffsetX;
-        r.y = y - dragOffsetY;
-      } else if (dragMode === "resize") {
-        if (resizeEdge === "right") r.w = x - r.x;
-        if (resizeEdge === "left") {
-          const oldRight = r.x + r.w;
-          r.x = x;
-          r.w = oldRight - r.x;
-        }
-        if (resizeEdge === "bottom") r.h = y - r.y;
-        if (resizeEdge === "top") {
-          const oldBottom = r.y + r.h;
-          r.y = y;
-          r.h = oldBottom - r.y;
-        }
-      }
-
-      redraw();
-      updateRegionList();
-    }
-  });
-
-  regionCanvas.addEventListener("mouseup", () => {
-    if (drawing && currentRect) {
-      drawing = false;
-      regionCanvas.style.cursor = "default";
-
-      let { x, y, w, h } = currentRect;
-      if (w < 0) { x += w; w = -w; }
-      if (h < 0) { y += h; h = -h; }
-
-      const type = prompt("Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):", "INGREDIENTS");
-      if (type) {
-        regions.push({ x, y, w, h, type: type.toUpperCase() });
-        updateRegionList();
-      }
-
-      currentRect = null;
-      redraw();
-    }
-
-    dragMode = null;
-    resizeEdge = null;
-  });
-
-  // DRAW / PRESETS
-  function redraw() {
-    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
-
-    regions.forEach((r, i) => {
-      ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
-      ctx.strokeStyle = TYPE_COLORS[r.type];
-      ctx.strokeRect(r.x, r.y, r.w, r.h);
-    });
-
-    if (currentRect) {
-      ctx.strokeStyle = "#ffff00";
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
-    }
-  }
-
-  function findRegionAt(x, y) {
-    for (let i = regions.length - 1; i >= 0; i--) {
-      const r = regions[i];
-      if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return i;
-    }
-    return null;
-  }
-
-  function findResizeEdge(r, x, y) {
-    const m = 8;
-    if (Math.abs(x - r.x) <= m) return "left";
-    if (Math.abs(x - (r.x + r.w)) <= m) return "right";
-    if (Math.abs(y - r.y) <= m) return "top";
-    if (Math.abs(y - (r.y + r.h)) <= m) return "bottom";
-    return null;
-  }
-
-  function loadPresetsFromStorage() {
-    try {
-      const raw = localStorage.getItem("ocrPresetsV1");
-      if (raw) presets = JSON.parse(raw);
-    } catch {}
-  }
-
-  function savePresetsToStorage() {
-    localStorage.setItem("ocrPresetsV1", JSON.stringify(presets));
-  }
-
-  function ensurePresetSlots() {
-    while (presets.length < MAX_PRESETS) {
-      presets.push({ name: "", regions: [] });
-    }
-  }
-
-  function updatePresetLabels() {
-    ensurePresetSlots();
-    for (let i = 0; i < MAX_PRESETS; i++) {
-      presetLabels[i].textContent = presets[i].name || "(empty)";
-    }
-  }
-
-  function applyPreset(preset) {
-    const w = regionCanvas.width;
-    const h = regionCanvas.height;
-
-    regions = preset.regions.map(r => ({
-      x: r.xNorm * w,
-      y: r.yNorm * h,
-      w: r.wNorm * w,
-      h: r.hNorm * h,
-      type: r.type
-    }));
-
-    redraw();
-    updateRegionList();
-  }
-
-  function loadPreset(index) {
-    ensurePresetSlots();
-    const preset = presets[index];
-
-    if (!preset || !preset.regions.length) {
-      regions = [];
-      redraw();
-      updateRegionList();
-      return;
-    }
-
-    applyPreset(preset);
-    activePresetIndex = index;
-  }
-
-  function initKentPreset() {
-    const baseW = 912;
-    const baseH = 1095;
-
-    const def = [
-      { x: 46, y: 34, w: 820, h: 114, type: "TITLE" },
-      { x: 46, y: 171, w: 820, h: 114, type: "DETAILS" },
-      { x: 46, y: 319, w: 392, h: 513, type: "INGREDIENTS" },
-      { x: 474, y: 319, w: 392, h: 513, type: "DIRECTIONS" },
-      { x: 46, y: 867, w: 820, h: 228, type: "NOTES" }
-    ];
-
-    presets[0] = {
-      name: "Kent Rollins",
-      regions: def.map(r => ({
-        xNorm: r.x / baseW,
-        yNorm: r.y / baseH,
-        wNorm: r.w / baseW,
-        hNorm: r.h / baseH,
-        type: r.type
-      }))
-    };
-
-    savePresetsToStorage();
-    updatePresetLabels();
-  }
-
-  function resizeCanvas() {
-    const rect = preview.getBoundingClientRect();
-    regionCanvas.width = rect.width;
-    regionCanvas.height = rect.height;
-    regionCanvas.style.display = "block";
-
-    loadPresetsFromStorage();
-    ensurePresetSlots();
-    updatePresetLabels();
-
-    if (presets[0].regions.length) {
-      applyPreset(presets[0]);
-    } else {
-      initKentPreset();
-      applyPreset(presets[0]);
-    }
-  }
-
-  preview.addEventListener("load", resizeCanvas);
-  if (preview.complete && preview.src) resizeCanvas();
-
-})();
-
-// ---------- BASIC OCR ----------
-async function runOCR() {
-  const file = document.getElementById("fileInput").files[0];
-  if (!file) return alert("Please select an image first.");
-
-  preview.src = URL.createObjectURL(file);
-
-  const { createWorker } = Tesseract;
-  const worker = await createWorker();
-
-  await worker.loadLanguage("eng");
-  await worker.initialize("eng");
-
-  const result = await worker.recognize(file);
-  const rawText = result.data.text;
-
-  document.getElementById("output").value = rawText;
-
-  await worker.terminate();
-
-  // CLEAN + PARSE
-  const cleaned = rawText.trim();
-  parseIngredientsFromCleaned(cleaned);
-}
-
-// ---------- REGION OCR ----------
-async function runRegionOCR() {
-  if (!preview.src) return alert("Load an image first.");
-  if (!window.regions || window.regions.length === 0)
-    return alert("No regions defined.");
-
-  const regionOCR = {
-    TITLE: "",
-    DETAILS: "",
-    INGREDIENTS: "",
-    DIRECTIONS: "",
-    NOTES: ""
-  };
-
-  const { createWorker } = Tesseract;
-  const worker = await createWorker();
-
-  await worker.loadLanguage("eng");
-  await worker.initialize("eng");
-
-  for (const r of window.regions) {
-    const canvas = document.createElement("canvas");
-    canvas.width = r.w;
-    canvas.height = r.h;
-
-    const cctx = canvas.getContext("2d");
-    cctx.drawImage(preview, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-
-    const result = await worker.recognize(canvas);
-    regionOCR[r.type] += result.data.text.trim() + "\n";
-  }
-
-  await worker.terminate();
-
-  fillFromRegions(regionOCR);
-
-  // CLEAN + PARSE
-  const cleaned = regionOCR.INGREDIENTS.trim();
-  parseIngredientsFromCleaned(cleaned);
-}
-
-// ---------- CLIPBOARD PASTE ----------
 document.addEventListener("paste", async (e) => {
   const item = [...e.clipboardData.items].find(i => i.type.startsWith("image/"));
   if (!item) return;
@@ -900,7 +285,642 @@ document.addEventListener("paste", async (e) => {
   preview.src = URL.createObjectURL(file);
 });
 
-});
+// ---------- MAIN APP ----------
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ---------- GLOBAL DOM HOOKS ----------
+  const regionCanvas = document.getElementById("regionCanvas");
+  const ctx = regionCanvas.getContext("2d");
+
+  const debugPanel = document.getElementById("debugPanel");
+  const debugToggle = document.getElementById("debugToggle");
+  const debugLines = document.getElementById("debugLines");
+  const debugParsed = document.getElementById("debugParsed");
+  const debugRaw = document.getElementById("debugRaw");
+  const debugCleaned = document.getElementById("debugCleaned");
+  const debugReparse = document.getElementById("debugReparse");
+
+  const nameInput = document.getElementById("nameInput");
+  const directionsInput = document.getElementById("directionsInput");
+  const notesInput = document.getElementById("notesInput");
+  const output = document.getElementById("output");
+
+  debugPanel.style.display = "none";
+  debugToggle.addEventListener("click", () => {
+    debugPanel.style.display = (debugPanel.style.display === "none") ? "block" : "none";
+  });
+
+  // ---------- INGREDIENT PARSER ----------
+  const UNIT_MAP = {
+    "C": "cups", "cup": "cups", "cups": "cups",
+    "T": "tablespoons", "tbsp": "tablespoons", "tablespoon": "tablespoons", "tablespoons": "tablespoons",
+    "t": "teaspoons", "tsp": "teaspoons", "teaspoon": "teaspoons", "teaspoons": "teaspoons",
+    "lb": "pound", "lbs": "pounds", "pound": "pound", "pounds": "pounds",
+    "pkg": "package", "pkgs": "packages", "package": "package", "packages": "packages"
+  };
+
+  function extractUnit(line) {
+    const keys = Object.keys(UNIT_MAP);
+    const regex = new RegExp(`^(${keys.join("|")})\\b`, "i");
+    return line.match(regex);
+  }
+
+  function parseIngredient(line) {
+    line = line.trim();
+
+    const qtyMatch = line.match(/^(\d+\/\d+|\d+\s+\d+\/\d+|\d+(\.\d+)?|\d+\s*-\s*\d+|\d+\s+to\s+\d+)/i);
+    const qty = qtyMatch ? qtyMatch[0] : "";
+    if (qty) line = line.replace(qty, "").trim();
+
+    const unitMatch = extractUnit(line);
+    let unit = "";
+    if (unitMatch) {
+      const rawUnit = unitMatch[0];
+      unit = UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;
+      line = line.replace(new RegExp("^" + rawUnit, "i"), "").trim();
+    }
+
+    const prepMatch = line.match(/(softened|chopped|diced|sliced|minced|shredded|peeled|crushed|grated|beaten|optional|for frying)/i);
+    const prep = prepMatch ? prepMatch[0] : "";
+    if (prep) line = line.replace(prep, "").trim();
+
+    const name = line.trim();
+    return { qty, unit, name, prep };
+  }
+
+  function parseIngredientsFromCleaned(cleanedText) {
+    const lines = cleanedText.split("\n")
+      .map(l => l.trim())
+      .filter(l => l.length > 0);
+
+    debugLines.textContent = JSON.stringify(lines, null, 2);
+
+    const parsed = lines.map(parseIngredient);
+    debugParsed.textContent = JSON.stringify(parsed, null, 2);
+
+    const tbody = document.querySelector("#ingredientsTable tbody");
+    tbody.innerHTML = "";
+
+    parsed.forEach(item => {
+      addIngredientRow(item.qty, item.unit, item.name, item.prep);
+    });
+  }
+
+  debugReparse.addEventListener("click", () => {
+    const cleaned = debugCleaned.value.trim();
+    if (!cleaned) return;
+    parseIngredientsFromCleaned(cleaned);
+  });
+
+  // ---------- INGREDIENT TABLE ----------
+  function addIngredientRow(qty, unit, name, prep) {
+    const tbody = document.querySelector("#ingredientsTable tbody");
+    const tr = document.createElement("tr");
+
+    const tdQty = document.createElement("td");
+    const tdUnit = document.createElement("td");
+    const tdName = document.createElement("td");
+    const tdPrep = document.createElement("td");
+    const tdDel = document.createElement("td");
+
+    const iQty = document.createElement("input");
+    const iUnit = document.createElement("input");
+    const iName = document.createElement("input");
+    const iPrep = document.createElement("input");
+
+    iQty.value = qty || "";
+    iUnit.value = unit || "";
+    iName.value = name || "";
+    iPrep.value = prep || "";
+
+    tdQty.appendChild(iQty);
+    tdUnit.appendChild(iUnit);
+    tdName.appendChild(iName);
+    tdPrep.appendChild(iPrep);
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "X";
+    delBtn.className = "btn secondary";
+    delBtn.addEventListener("click", () => tr.remove());
+    tdDel.appendChild(delBtn);
+
+    tr.appendChild(tdQty);
+    tr.appendChild(tdUnit);
+    tr.appendChild(tdName);
+    tr.appendChild(tdPrep);
+    tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+  }
+
+  // ---------- FILL FROM REGIONS ----------
+  function fillFromRegions(regionOCR) {
+    if (regionOCR.TITLE) {
+      nameInput.value = regionOCR.TITLE.trim().split("\n")[0];
+    }
+
+    if (regionOCR.INGREDIENTS) {
+      output.value = regionOCR.INGREDIENTS.trim();
+      debugRaw.value = regionOCR.INGREDIENTS.trim();
+      debugCleaned.value = regionOCR.INGREDIENTS.trim();
+      parseIngredientsFromCleaned(regionOCR.INGREDIENTS.trim());
+    }
+
+    if (regionOCR.DIRECTIONS) {
+      const dirLines = regionOCR.DIRECTIONS
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+      directionsInput.value = dirLines.join("\n");
+    }
+
+    if (regionOCR.NOTES) {
+      const noteLines = regionOCR.NOTES
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+      notesInput.value = noteLines.join("\n");
+    }
+  }
+
+  // ---------- PRESET / REGION OVERLAY ----------
+  (() => {
+    window.regions = [];
+    window.presets = [];
+
+    let activeRegionIndex = null;
+    let drawing = false;
+    let dragMode = null;
+    let dragOffsetX = 0, dragOffsetY = 0;
+    let resizeEdge = null;
+    let startX = 0, startY = 0;
+    let currentRect = null;
+
+    const TYPE_COLORS = {
+      TITLE: "#1e90ff",
+      DETAILS: "#2ecc71",
+      INGREDIENTS: "#e74c3c",
+      DIRECTIONS: "#e67e22",
+      NOTES: "#9b59b6"
+    };
+
+    const MAX_PRESETS = 5;
+    let activePresetIndex = null;
+    let selectedPresetIndex = 0;
+
+    const presetButtonsRow = document.getElementById("presetButtonsRow");
+    const presetButtons = [];
+    const presetLabels = [];
+
+    const miniMapPopup = document.getElementById("miniMapPopup");
+    const miniCanvas = document.getElementById("miniMapCanvas");
+    const miniCtx = miniCanvas.getContext("2d");
+
+    const addRegionBtn = document.getElementById("addRegionBtn");
+    const runRegionBtn = document.getElementById("runRegionBtn");
+    const regionList = document.getElementById("regionList");
+    const regionLegend = document.getElementById("regionLegend");
+
+    const savePresetBtn = document.getElementById("savePresetBtn");
+    const renamePresetBtn = document.getElementById("renamePresetBtn");
+    const deletePresetBtn = document.getElementById("deletePresetBtn");
+
+    function buildLegend() {
+      regionLegend.innerHTML = "";
+      Object.keys(TYPE_COLORS).forEach(type => {
+        const wrap = document.createElement("div");
+        wrap.style.display = "inline-flex";
+        wrap.style.alignItems = "center";
+        wrap.style.marginRight = "8px";
+
+        const swatch = document.createElement("span");
+        swatch.style.display = "inline-block";
+        swatch.style.width = "14px";
+        swatch.style.height = "14px";
+        swatch.style.marginRight = "4px";
+        swatch.style.backgroundColor = TYPE_COLORS[type];
+
+        const label = document.createElement("span");
+        label.textContent = type;
+
+        wrap.appendChild(swatch);
+        wrap.appendChild(label);
+        regionLegend.appendChild(wrap);
+      });
+    }
+    buildLegend();
+
+    function buildPresetButtons() {
+      for (let i = 0; i < MAX_PRESETS; i++) {
+        const wrap = document.createElement("div");
+        wrap.style.display = "flex";
+        wrap.style.flexDirection = "column";
+        wrap.style.alignItems = "center";
+
+        const btn = document.createElement("button");
+        btn.textContent = `Preset ${i + 1}`;
+        btn.className = "btn secondary";
+        btn.dataset.index = i;
+
+        const label = document.createElement("div");
+        label.textContent = "(empty)";
+        label.style.fontSize = "11px";
+        label.style.marginTop = "2px";
+
+        wrap.appendChild(btn);
+        wrap.appendChild(label);
+        presetButtonsRow.appendChild(wrap);
+
+        presetButtons.push(btn);
+        presetLabels.push(label);
+
+        btn.addEventListener("click", () => {
+          selectedPresetIndex = i;
+          loadPreset(i);
+        });
+
+        btn.addEventListener("mouseenter", e => showMiniMap(i, e));
+        btn.addEventListener("mouseleave", () => miniMapPopup.style.display = "none");
+      }
+    }
+
+    function showMiniMap(index, evt) {
+      const preset = presets[index];
+      if (!preset || !preset.regions.length) return;
+
+      const rect = evt.target.getBoundingClientRect();
+      miniMapPopup.style.left = rect.left + "px";
+      miniMapPopup.style.top = rect.bottom + 4 + "px";
+      miniMapPopup.style.display = "block";
+
+      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+
+      preset.regions.forEach(r => {
+        const x = r.xNorm * miniCanvas.width;
+        const y = r.yNorm * miniCanvas.height;
+        const w = r.wNorm * miniCanvas.width;
+        const h = r.hNorm * miniCanvas.height;
+        miniCtx.strokeStyle = TYPE_COLORS[r.type];
+        miniCtx.strokeRect(x, y, w, h);
+      });
+    }
+
+    buildPresetButtons();
+
+    addRegionBtn.addEventListener("click", () => {
+      drawing = true;
+      currentRect = null;
+      regionCanvas.style.cursor = "crosshair";
+    });
+
+    function updateRegionList() {
+      regionList.textContent = regions.map((r, i) =>
+        `${i + 1}. ${r.type} @ x=${Math.round(r.x)}, y=${Math.round(r.y)}, w=${Math.round(r.w)}, h=${Math.round(r.h)}`
+      ).join("\n");
+    }
+
+    regionCanvas.addEventListener("mousedown", e => {
+      const rect = regionCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (drawing) {
+        startX = x;
+        startY = y;
+        currentRect = { x, y, w: 0, h: 0 };
+        redraw();
+        return;
+      }
+
+      const idx = findRegionAt(x, y);
+      if (idx !== null) {
+        activeRegionIndex = idx;
+        const r = regions[idx];
+        const edge = findResizeEdge(r, x, y);
+
+        if (edge) {
+          dragMode = "resize";
+          resizeEdge = edge;
+          dragOffsetX = x;
+          dragOffsetY = y;
+        } else {
+          dragMode = "move";
+          dragOffsetX = x - r.x;
+          dragOffsetY = y - r.y;
+        }
+        redraw();
+      } else {
+        activeRegionIndex = null;
+        dragMode = null;
+        resizeEdge = null;
+        redraw();
+      }
+    });
+
+    regionCanvas.addEventListener("mousemove", e => {
+      const rect = regionCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (drawing && currentRect) {
+        currentRect.w = x - startX;
+        currentRect.h = y - startY;
+        redraw();
+        return;
+      }
+
+      if (dragMode && activeRegionIndex !== null) {
+        const r = regions[activeRegionIndex];
+
+        if (dragMode === "move") {
+          r.x = x - dragOffsetX;
+          r.y = y - dragOffsetY;
+        } else if (dragMode === "resize") {
+          if (resizeEdge === "right") r.w = x - r.x;
+          if (resizeEdge === "left") {
+            const oldRight = r.x + r.w;
+            r.x = x;
+            r.w = oldRight - r.x;
+          }
+          if (resizeEdge === "bottom") r.h = y - r.y;
+          if (resizeEdge === "top") {
+            const oldBottom = r.y + r.h;
+            r.y = y;
+            r.h = oldBottom - r.y;
+          }
+        }
+
+        redraw();
+        updateRegionList();
+      }
+    });
+
+    regionCanvas.addEventListener("mouseup", () => {
+      if (drawing && currentRect) {
+        drawing = false;
+        regionCanvas.style.cursor = "default";
+
+        let { x, y, w, h } = currentRect;
+        if (w < 0) { x += w; w = -w; }
+        if (h < 0) { y += h; h = -h; }
+
+        const type = prompt("Region type (TITLE, DETAILS, INGREDIENTS, DIRECTIONS, NOTES):", "INGREDIENTS");
+        if (type) {
+          regions.push({ x, y, w, h, type: type.toUpperCase() });
+          updateRegionList();
+        }
+
+        currentRect = null;
+        redraw();
+      }
+
+      dragMode = null;
+      resizeEdge = null;
+    });
+
+    function redraw() {
+      ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+
+      regions.forEach((r, i) => {
+        ctx.lineWidth = (i === activeRegionIndex) ? 3 : 2;
+        ctx.strokeStyle = TYPE_COLORS[r.type];
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+      });
+
+      if (currentRect) {
+        ctx.strokeStyle = "#ffff00";
+        ctx.strokeRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+      }
+    }
+
+    function findRegionAt(x, y) {
+      for (let i = regions.length - 1; i >= 0; i--) {
+        const r = regions[i];
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return i;
+      }
+      return null;
+    }
+
+    function findResizeEdge(r, x, y) {
+      const m = 8;
+      if (Math.abs(x - r.x) <= m) return "left";
+      if (Math.abs(x - (r.x + r.w)) <= m) return "right";
+      if (Math.abs(y - r.y) <= m) return "top";
+      if (Math.abs(y - (r.y + r.h)) <= m) return "bottom";
+      return null;
+    }
+
+    function loadPresetsFromStorage() {
+      try {
+        const raw = localStorage.getItem("ocrPresetsV1");
+        if (raw) presets = JSON.parse(raw);
+      } catch {}
+    }
+
+    function savePresetsToStorage() {
+      localStorage.setItem("ocrPresetsV1", JSON.stringify(presets));
+    }
+
+    function ensurePresetSlots() {
+      while (presets.length < MAX_PRESETS) {
+        presets.push({ name: "", regions: [] });
+      }
+    }
+
+    function updatePresetLabels() {
+      ensurePresetSlots();
+      for (let i = 0; i < MAX_PRESETS; i++) {
+        presetLabels[i].textContent = presets[i].name || "(empty)";
+      }
+    }
+
+    function applyPreset(preset) {
+      const w = regionCanvas.width;
+      const h = regionCanvas.height;
+
+      regions = preset.regions.map(r => ({
+        x: r.xNorm * w,
+        y: r.yNorm * h,
+        w: r.wNorm * w,
+        h: r.hNorm * h,
+        type: r.type
+      }));
+
+      redraw();
+      updateRegionList();
+    }
+
+    function loadPreset(index) {
+      ensurePresetSlots();
+      const preset = presets[index];
+
+      if (!preset || !preset.regions.length) {
+        regions = [];
+        redraw();
+        updateRegionList();
+        return;
+      }
+
+      applyPreset(preset);
+      activePresetIndex = index;
+    }
+
+    function initKentPreset() {
+      const baseW = 912;
+      const baseH = 1095;
+
+      const def = [
+        { x: 46, y: 34, w: 820, h: 114, type: "TITLE" },
+        { x: 46, y: 171, w: 820, h: 114, type: "DETAILS" },
+        { x: 46, y: 319, w: 392, h: 513, type: "INGREDIENTS" },
+        { x: 474, y: 319, w: 392, h: 513, type: "DIRECTIONS" },
+        { x: 46, y: 867, w: 820, h: 228, type: "NOTES" }
+      ];
+
+      presets[0] = {
+        name: "Kent Rollins",
+        regions: def.map(r => ({
+          xNorm: r.x / baseW,
+          yNorm: r.y / baseH,
+          wNorm: r.w / baseW,
+          hNorm: r.h / baseH,
+          type: r.type
+        }))
+      };
+
+      savePresetsToStorage();
+      updatePresetLabels();
+    }
+
+    function resizeCanvas() {
+      const rect = preview.getBoundingClientRect();
+      regionCanvas.width = rect.width;
+      regionCanvas.height = rect.height;
+      regionCanvas.style.display = "block";
+
+      loadPresetsFromStorage();
+      ensurePresetSlots();
+      updatePresetLabels();
+
+      if (presets[0] && presets[0].regions && presets[0].regions.length) {
+        applyPreset(presets[0]);
+      } else {
+        initKentPreset();
+        applyPreset(presets[0]);
+      }
+    }
+
+    preview.addEventListener("load", resizeCanvas);
+    if (preview.complete && preview.src) resizeCanvas();
+
+    savePresetBtn.addEventListener("click", () => {
+      ensurePresetSlots();
+      if (selectedPresetIndex == null) selectedPresetIndex = 0;
+
+      const w = regionCanvas.width;
+      const h = regionCanvas.height;
+
+      presets[selectedPresetIndex] = {
+        name: presets[selectedPresetIndex].name || `Preset ${selectedPresetIndex + 1}`,
+        regions: regions.map(r => ({
+          xNorm: r.x / w,
+          yNorm: r.y / h,
+          wNorm: r.w / w,
+          hNorm: r.h / h,
+          type: r.type
+        }))
+      };
+
+      savePresetsToStorage();
+      updatePresetLabels();
+    });
+
+    renamePresetBtn.addEventListener("click", () => {
+      ensurePresetSlots();
+      const name = prompt("Preset name:", presets[selectedPresetIndex].name || "");
+      if (name !== null) {
+        presets[selectedPresetIndex].name = name;
+        savePresetsToStorage();
+        updatePresetLabels();
+      }
+    });
+
+    deletePresetBtn.addEventListener("click", () => {
+      ensurePresetSlots();
+      presets[selectedPresetIndex] = { name: "", regions: [] };
+      savePresetsToStorage();
+      updatePresetLabels();
+    });
+
+  })();
+
+  // ---------- BASIC OCR ----------
+  async function runOCR() {
+    const file = fileInput.files[0];
+    if (!file) return alert("Please select an image first.");
+
+    preview.src = URL.createObjectURL(file);
+
+    const { createWorker } = Tesseract;
+    const worker = await createWorker();
+
+    await worker.loadLanguage("eng");
+    await worker.initialize("eng");
+
+    const result = await worker.recognize(file);
+    const rawText = result.data.text;
+
+    output.value = rawText;
+    debugRaw.value = rawText;
+    debugCleaned.value = rawText;
+
+    await worker.terminate();
+
+    const cleaned = rawText.trim();
+    parseIngredientsFromCleaned(cleaned);
+  }
+
+  document.getElementById("runOCR").addEventListener("click", runOCR);
+
+  // ---------- REGION OCR ----------
+  async function runRegionOCR() {
+    if (!preview.src) return alert("Load an image first.");
+    if (!window.regions || window.regions.length === 0)
+      return alert("No regions defined.");
+
+    const regionOCR = {
+      TITLE: "",
+      DETAILS: "",
+      INGREDIENTS: "",
+      DIRECTIONS: "",
+      NOTES: ""
+    };
+
+    const { createWorker } = Tesseract;
+    const worker = await createWorker();
+
+    await worker.loadLanguage("eng");
+    await worker.initialize("eng");
+
+    for (const r of window.regions) {
+      const canvas = document.createElement("canvas");
+      canvas.width = r.w;
+      canvas.height = r.h;
+
+      const cctx = canvas.getContext("2d");
+      cctx.drawImage(preview, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+
+      const result = await worker.recognize(canvas);
+      regionOCR[r.type] += result.data.text.trim() + "\n";
+    }
+
+    await worker.terminate();
+    fillFromRegions(regionOCR);
+  }
+
+  document.getElementById("runRegionBtn").addEventListener("click", runRegionOCR);
+
+}); // END DOMContentLoaded
 </script>
 
 </body>
