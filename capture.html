@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 12</title>
+  <title>Capture Recipe 13</title>
 <style>
 
 body {
@@ -736,23 +736,49 @@ function fillFromRegions(regionOCR) {
 
 // ---------- BASIC OCR (Run OCR button) ----------
 async function runOCR() {
+
   const file = document.getElementById("fileInput").files[0];
+
   if (!file) {
     alert("Please select an image first.");
     return;
   }
 
+  // Load image into preview
   preview.src = URL.createObjectURL(file);
-  // Tesseract worker usage here if you have it wired;
-  // for now we just show the image and leave output empty.
+
+  // Wait for preview to load so canvas can size correctly
+  preview.onload = async () => {
+
+    const { createWorker } = Tesseract;
+    const worker = await createWorker();
+
+    await worker.loadLanguage("eng");
+    await worker.initialize("eng");
+
+    // Run full-image OCR
+    const result = await worker.recognize(preview);
+    const text = result.data.text;
+
+    // Push raw OCR into cleaned OCR textarea
+    document.getElementById("output").value = text;
+
+    await worker.terminate();
+  };
 }
 
 document.getElementById("runOCR").addEventListener("click", runOCR);
 
 // ---------- REGION OCR (Run Region OCR button) ----------
 async function runRegionOCR() {
+
   if (!preview.src) {
     alert("Load an image first.");
+    return;
+  }
+
+  if (!window.regions || window.regions.length === 0) {
+    alert("No regions defined.");
     return;
   }
 
@@ -764,16 +790,54 @@ async function runRegionOCR() {
     NOTES: ""
   };
 
-  // Here you plug in your real Tesseract worker.
-  // For now, we just fake text so wiring is clear.
-  window.regions.forEach(r => {
-    regionOCR[r.type] += "[region text here]\n";
-  });
+  const { createWorker } = Tesseract;
+  const worker = await createWorker();
 
+  await worker.loadLanguage("eng");
+  await worker.initialize("eng");
+
+  // Loop through each region and OCR it
+  for (const r of window.regions) {
+
+    const canvas = document.createElement("canvas");
+    canvas.width = r.w;
+    canvas.height = r.h;
+
+    const cctx = canvas.getContext("2d");
+
+    cctx.drawImage(
+      preview,
+      r.x, r.y, r.w, r.h,
+      0, 0, r.w, r.h
+    );
+
+    const result = await worker.recognize(canvas);
+    const text = result.data.text.trim();
+
+    regionOCR[r.type] += text + "\n";
+  }
+
+  await worker.terminate();
+
+  // Push extracted region text into your landing page
   fillFromRegions(regionOCR);
 }
 
 document.getElementById("runRegionBtn").addEventListener("click", runRegionOCR);
+
+// ---------- CLIPBOARD PASTE SUPPORT ----------
+document.addEventListener("paste", async (e) => {
+
+  const item = [...e.clipboardData.items].find(i => i.type.startsWith("image/"));
+  if (!item) return;
+
+  const file = item.getAsFile();
+  preview.src = URL.createObjectURL(file);
+
+  preview.onload = () => {
+    // triggers resizeCanvas() automatically
+  };
+});
 </script>
 
 </body>
