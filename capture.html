@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 22</title>
+  <title>Capture Recipe 23</title>
 <style>
 
 body {
@@ -262,6 +262,27 @@ textarea {
   </div>
 
 <script>
+
+const fileInput = document.getElementById("fileInput");
+const preview = document.getElementById("preview");
+
+fileInput.addEventListener("change", () => {
+    console.log("FILE INPUT FIRED");
+
+    const file = fileInput.files[0];
+    if (!file) {
+        console.log("NO FILE");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        console.log("PREVIEW UPDATED");
+        preview.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+});
+
 document.addEventListener("DOMContentLoaded", () => {
 
 // ---------- GLOBAL DOM HOOKS ----------
