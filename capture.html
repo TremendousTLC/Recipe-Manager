@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Capture Recipe 15</title>
+  <title>Capture Recipe 16</title>
 <style>
 
 body {
@@ -733,6 +733,8 @@ function fillFromRegions(regionOCR) {
   // expose regions for runRegionOCR
   window.regions = regions;
 })();
+
+preview.addEventListener("load", resizeCanvas);
 
 // ---------- BASIC OCR (Run OCR button) ----------
 async function runOCR() {
